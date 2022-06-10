@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout android:id="@+id/drawer_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/main_background"
+        android:paddingTop="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp">
+
+
+        <LinearLayout
+            android:layout_weight="0.8"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="center_vertical"
+            android:orientation="horizontal">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical">
+                <!-- 블루투스 아이콘 -->
+                <Button
+                    android:id="@+id/nbtn_connectble"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_marginRight="15dp"
+                    android:background="@drawable/bluetooth_blue"
+                    android:scaleType="fitCenter" />
+                <!-- 위치 아이콘 -->
+                <Button
+                    android:visibility="gone"
+                    android:id="@+id/nbtn_navi"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_toRightOf="@+id/nbtn_connectble" />
+                <!-- 메뉴 아이콘 -->
+                <Button
+                    android:id="@+id/nbtn_menu"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_alignParentRight="true"
+                    android:background="@drawable/ic_menu"
+                    android:scaleType="matrix" />
+            </RelativeLayout>
+        </LinearLayout>
+
+
+
+
+
+        <LinearLayout
+            android:layout_weight="0.7"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal">
+            <!-- 현재날짜 -->
+            <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:id="@+id/ntv_nowdate"
+                android:layout_weight="1.3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="left|center_vertical"
+                android:text="2022-05-04"
+                android:textColor="@color/white"/>
+            <!-- 현재시간 -->
+            <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:id="@+id/ntv_nowtime"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|right"
+                android:text="오후 12:00"
+                android:textColor="@color/white"/>
+        </LinearLayout>
+
+
+
+
+        <LinearLayout
+            android:layout_weight="5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical">
+            <FrameLayout
+                android:id="@+id/frame1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </FrameLayout>
+        </LinearLayout>
+
+
+
+
+        <LinearLayout
+            android:layout_weight="3.5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            android:paddingTop="10dp"
+            android:paddingBottom="5dp">
+            <FrameLayout
+                android:id="@+id/frame2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </FrameLayout>
+        </LinearLayout>
+
+
+
+
+
+    </LinearLayout>
+
+
+    <include layout="@layout/activity_menu"/>
+
+</androidx.drawerlayout.widget.DrawerLayout>

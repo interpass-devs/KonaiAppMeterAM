@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@color/grey_background">
+
+
+
+
+
+    <LinearLayout
+        android:layout_weight="1.3"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingLeft="16dp">
+        <LinearLayout
+            android:layout_weight="0.5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal">
+            <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:layout_weight="3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:text="운전자"
+                android:textColor="@color/yellow"
+                android:textStyle="bold"
+                android:padding="8dp"/>
+            <TextView
+                android:id="@+id/check_driver_info"
+                android:layout_weight="1.1"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:text="변경/추가"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:background="@drawable/yellow_gradi_btn"/>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_weight="0.4"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:background="@drawable/yellow_line_black_background"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="16dp">
+            <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:id="@+id/driver_name"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="center|right"
+                android:text="홍길동"
+                android:textColor="@color/grey_light"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:paddingBottom="10dp"
+                android:paddingTop="10dp"
+                android:paddingLeft="20dp"/>
+            <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:id="@+id/driver_num"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:text="1234"
+                android:textColor="@color/grey_light"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:paddingBottom="10dp"
+                android:paddingTop="10dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="20dp"/>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_weight="1.8"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:orientation="vertical"
+                android:layout_marginBottom="10dp">
+                <com.konai.appmeter.driver_am.util.FontFitTextView
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:text="이름"
+                    android:textStyle="bold"
+                    android:textColor="@color/grey_light"
+                    android:paddingBottom="5dp"/>
+                <EditText
+                    android:id="@+id/inpt_name"
+                    android:layout_weight="1.5"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:background="@drawable/grey_round_background"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
+                <com.konai.appmeter.driver_am.util.FontFitTextView
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:text="차량번호"
+                    android:textStyle="bold"
+                    android:textColor="@color/grey_light"
+                    android:paddingBottom="5dp"/>
+                <EditText
+                    android:id="@+id/inpt_carno"
+                    android:layout_weight="1.5"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:background="@drawable/grey_round_background"/>
+            </LinearLayout>
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+
+
+
+
+
+
+
+    <LinearLayout
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_weight="4"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical"
+            android:paddingLeft="50dp"
+            android:paddingRight="50dp"
+            android:paddingTop="60dp"
+            android:paddingBottom="60dp">
+            <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:id="@+id/tv_conn_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:textStyle="bold"
+                android:textColor="@color/yellow"
+                android:text="통신결과"
+                android:padding="8dp"/>
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/btn_ok"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:text="확 인"
+                android:textStyle="bold"
+                android:padding="10dp"
+                android:background="@drawable/yellow_gradi_btn"
+                android:layout_marginTop="5dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_weight="1"
+            android:id="@+id/auto_login_checkbox_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="center_vertical"
+            android:gravity="right"
+            android:orientation="horizontal"
+            android:paddingRight="50dp">
+
+            <CheckBox
+                android:id="@+id/auto_login_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center_vertical"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center_vertical"
+                android:text="자동 로그인"
+                android:textSize="20dp"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:layout_marginLeft="10dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+
+</LinearLayout>

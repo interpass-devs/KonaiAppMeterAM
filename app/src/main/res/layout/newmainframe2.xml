@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <!--빈차화면-->
+                <LinearLayout
+                    android:visibility="visible"
+                    android:id="@+id/emptylayouts"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:weightSum="2"
+                    android:orientation="vertical">
+                    <com.konai.appmeter.driver_am.util.ButtonFitText
+                        android:id="@+id/nbtn_drivestart"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:gravity="center"
+                        android:layout_marginBottom="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/yellow_gradi_btn"
+                        android:text="손님탑승"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:padding="20dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:weightSum="3"
+                        android:orientation="horizontal">
+
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_emptycar_e"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/yellow_gradi_btn"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingLeft="10dp"
+                            android:paddingRight="10dp"
+                            android:text="빈차"
+                            android:textStyle="bold"
+                            android:textColor="#000000"/>
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_manualpay_e"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingLeft="10dp"
+                            android:paddingRight="10dp"
+                            android:text="수기"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"/>
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_reserv_e"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingLeft="10dp"
+                            android:paddingRight="10dp"
+                            android:text="호출"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+
+
+
+
+
+
+
+
+
+
+                <!--주행화면-->
+                <LinearLayout
+                    android:visibility="gone"
+                    android:id="@+id/drivelayouts"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:weightSum="2">
+                    <com.konai.appmeter.driver_am.util.ButtonFitText
+                        android:id="@+id/nbtn_driveend"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/yellow_gradi_btn"
+                        android:text="지 불"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:padding="18dp"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_weight="1"
+                        android:weightSum="3"
+                        android:orientation="horizontal">
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_emptycar_d"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingLeft="10dp"
+                            android:paddingRight="10dp"
+                            android:text="빈차"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"/>
+
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_reserv_d"
+                            android:visibility="gone"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingLeft="10dp"
+                            android:paddingRight="10dp"
+                            android:text="호출"
+                            android:textColor="@color/white"/>
+
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_complex_d"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingLeft="10dp"
+                            android:paddingRight="10dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:text="복합"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"/>
+
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_surburb_d"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingLeft="10dp"
+                            android:paddingRight="10dp"
+                            android:text="시외"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+
+
+                <!--결제화면-->
+                <LinearLayout
+                    android:visibility="gone"
+                    android:id="@+id/paymentlayouts"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:weightSum="2"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/layout_payment_type"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="0.75"
+                        android:orientation="horizontal">
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_cashpayment"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/yellow_gradi_btn"
+                            android:text="현 금"
+                            android:textStyle="bold"
+                            android:textColor="#000000"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/layout_add_payment"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_weight="0.75"
+                        android:orientation="horizontal">
+
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_addpayment"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:text="추가요금"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"
+
+                            android:padding="5dp"/>
+                        <com.konai.appmeter.driver_am.util.ButtonFitText
+                            android:id="@+id/nbtn_callpayment"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:layout_marginLeft="10dp"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:text="호출요금"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"
+                            android:padding="5dp" />
+                    </LinearLayout>
+
+                    <com.konai.appmeter.driver_am.util.ButtonFitText
+                        android:id="@+id/nbtn_cancelpayment"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_marginTop="5dp"
+                        android:layout_weight="0.5"
+                        android:background="@drawable/grey_gradi_btn"
+                        android:text="취 소"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:paddingTop="2dp"
+                        android:paddingBottom="2dp"/>
+                </LinearLayout>
+
+
+
+
+                <LinearLayout
+                    android:visibility="gone"
+                    android:id="@+id/payinglayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:weightSum="2"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1.5"
+                        android:weightSum="2"
+                        android:orientation="vertical">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:weightSum="2"
+                            android:orientation="horizontal">
+                            <Button
+                                android:id="@+id/btn_paycash"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginRight="5dp"
+                                android:layout_marginTop="10dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/yellow_selected_btn"
+                                android:text="현금"
+                                android:textColor="#000000"
+                                android:autoSizeTextType="uniform"
+                                android:padding="15sp" />
+                            <Button
+                                android:id="@+id/btn_mobilepay"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginRight="0dp"
+                                android:layout_marginTop="10dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/yellow_selected_btn"
+                                android:text="모바일"
+                                android:autoSizeTextType="uniform"
+                                android:textColor="#000000"
+                                android:padding="15sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btn_payingcancel"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_weight="0.5"
+                        android:background="@drawable/grey_round_background"
+                        android:autoSizeTextType="uniform"
+                        android:text="취소"
+                        android:textColor="#000000"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:visibility="gone"
+                    android:id="@+id/endpayment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:weightSum="2"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="10dp"
+                        android:weightSum="2">
+
+                        <Button
+                            android:id="@+id/nbtn_receipt"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:layout_marginRight="5dp"
+                            android:background="@drawable/yellow_gradi_btn"
+                            android:autoSizeTextType="uniform"
+                            android:padding="5sp"
+                            android:text="영수증출력"
+                            android:textColor="@color/black"
+                            android:textStyle="bold" />
+
+                        <Button
+                            android:id="@+id/nbtn_cashreceipt"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:layout_marginLeft="5dp"
+                            android:autoSizeTextType="uniform"
+                            android:padding="5sp"
+                            android:background="@drawable/yellow_gradi_btn"
+                            android:textColor="@color/black"
+                            android:textStyle="bold"
+                            android:visibility="invisible"
+                            android:text="현금영수증" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/nbtn_emptycar_ep"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:autoSizeTextType="uniform"
+                            android:padding="15sp"
+                            android:text="빈차"
+                            android:textColor="@color/white" />
+
+                        <Button
+                            android:id="@+id/nbtn_drivecar_ep"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/yellow_gradi_btn"
+                            android:autoSizeTextType="uniform"
+                            android:padding="15sp"
+                            android:text="주행"
+                            android:textColor="#000000"/>
+
+                        <Button
+                            android:id="@+id/nbtn_reserv_ep"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/grey_gradi_btn"
+                            android:autoSizeTextType="uniform"
+                            android:padding="15sp"
+                            android:text="호출"
+                            android:textColor="@color/white"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+
+
+
+
+    <RelativeLayout
+        android:visibility="gone"
+        android:id="@+id/tv_pay_card"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="center_horizontal"
+            android:autoSizeTextType="uniform"
+            android:text="수기결제"
+            android:textColor="@color/grey_light"
+            android:textSize="40dp"/>
+        <TextView
+            android:id="@+id/tv_msg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:autoSizeTextType="uniform"
+            android:text="카드결제를 진행해주세요"
+            android:textColor="@color/grey_light"
+            android:textSize="30dp"
+            android:layout_below="@+id/tv_title"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="100dp"/>
+    </RelativeLayout>
+
+</RelativeLayout>
