@@ -32,7 +32,7 @@ public class AMBlestruct {
     public static final String B_CLOSE = "50";      //후무
     public static final String B_CANCEL_PAY = "51"; //결제취소
 
-
+    public static String mSState = "";
 
 
     //me: 빈차등 -> 앱

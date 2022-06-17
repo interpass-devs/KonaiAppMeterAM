@@ -22,6 +22,7 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 
 import com.konai.appmeter.driver_am.service.AwindowService;
+import com.konai.appmeter.driver_am.setting.AMBlestruct;
 import com.konai.appmeter.driver_am.setting.setting;
 import com.konai.appmeter.driver_am.view.MainActivity;
 import java.util.HashMap;
@@ -70,6 +71,8 @@ public class AMBluetoothManager {
 
     private AMPacket topkt = null;
     private AMPacket outpkt = null;
+    private static byte[] packetdata;
+    public byte[] outpacket = null;
 
 
 
@@ -147,8 +150,6 @@ public class AMBluetoothManager {
         }
 
     }
-
-
 
     private void startScanBLE() {
 
@@ -335,7 +336,6 @@ public class AMBluetoothManager {
     }
 
 
-
     //gatt server 연결
     private final BluetoothGattCallback mGattCallback =
             new BluetoothGattCallback() {
@@ -451,6 +451,8 @@ public class AMBluetoothManager {
 
                                 m_descriptor = descriptor;
                                 Log.e("gatt_descriptor", descriptor.getUuid().toString());  //00002902-0000-1000-8000-00805f9b34fb
+
+
                             }
 
                         }
@@ -463,7 +465,6 @@ public class AMBluetoothManager {
             }
         }
     }
-
 
 
     private void initGattCharaceristic() {
@@ -497,6 +498,33 @@ public class AMBluetoothManager {
         {
             //todo.
         }
+    }
+
+
+    //앱 -> 빈차등 상태값 요청
+    synchronized public boolean makePacketSendRequest(String requestCode) {
+
+        byte[] mData = null;
+        topkt.SetPoint(0);
+
+        topkt.Setbyte(packetdata, (byte) 0x02);  //STX
+
+        Log.d("send_requestconde", requestCode);
+
+        switch (requestCode) {
+
+            case AMBlestruct.curReponseCode:
+
+                topkt.SetString(packetdata, "15");
+
+                topkt.SetString(packetdata, AMBlestruct.mSState);
+
+                Log.d("send_빈차등차량상태전송", AMBlestruct.mSState);
+
+                break;
+        }
+
+        return true;
     }
 
 

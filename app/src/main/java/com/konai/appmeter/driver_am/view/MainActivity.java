@@ -46,9 +46,11 @@ import com.konai.appmeter.driver_am.BuildConfig;
 import com.konai.appmeter.driver_am.R;
 import com.konai.appmeter.driver_am.dialog.InputFareDialog;
 import com.konai.appmeter.driver_am.service.AwindowService;
+import com.konai.appmeter.driver_am.setting.AMBlestruct;
 import com.konai.appmeter.driver_am.setting.PermissionSupoort;
 import com.konai.appmeter.driver_am.setting.setting;
 import com.konai.appmeter.driver_am.socket.AMBluetoothManager;
+import com.konai.appmeter.driver_am.socket.AMPacket;
 import com.konai.appmeter.driver_am.util.ButtonFitText;
 import com.konai.appmeter.driver_am.util.FontFitTextView;
 import com.konai.appmeter.driver_am.util.MyTouchListener;
@@ -143,6 +145,11 @@ public class MainActivity extends AppCompatActivity {
     private NotificationManager nfManager;
     private NotificationChannel nfGpsChannel;
 
+    private AMPacket topkt = null;
+    private AMPacket outpkt = null;
+    private static byte[] packetdata;
+    public byte[] outpacket = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
 
         //블루투스 관리자객체 소환
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-//        mBluetoothAdapter = bluetoothManager.getAdapter();
 
         //블루투스 활성화 (블루투스가 켜져있는지 확인)
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
@@ -188,22 +194,16 @@ public class MainActivity extends AppCompatActivity {
             Log.d("bluetooth_result", "ble on");
 
             //me: 기기검색 실행코드
-
-            //status -- 안되면 되살리기
-            //scan device
-//            mHandler = new Handler();
-//            scanLeDevice(true);
-            //status -- 안되면 되살리기
-            //status -- 블루투스는 AwindowService 에서 돌고있음
+            //status -- AWindowService 클래스에서 연결해주고 있음..
 
         }
 
-        Log.d("ble_state_1", setting.BLE_STATE+"");
+
 
         viewFrameVariablesConfiguration();
 
-        Log.d("ble_state_2", setting.BLE_STATE+"");
 
+        //status ---- 블루투스 연결여부 아이콘 설정
 //        if (setting.BLE_STATE == true) {
 //            Log.d("ble_state_true", setting.BLE_STATE+"");
 //            iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
