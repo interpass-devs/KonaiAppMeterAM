@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:filterTouchesWhenObscured="true">
+
+<!--    <com.konai.appmeter.driver_am.util.FontFitTextView-->
+<!--        android:id="@+id/btn_img"-->
+<!--        android:layout_width="70dp"-->
+<!--        android:layout_height="70dp"-->
+<!--        android:layout_centerInParent="true"-->
+<!--        android:background="@drawable/yellow_transparent_round"-->
+<!--        android:gravity="center"-->
+<!--        android:text="호출"-->
+<!--        android:textColor="@color/white"/>-->
+    <ImageView
+        android:id="@+id/btn_img"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/launcher_icon"/>
+
+</RelativeLayout>

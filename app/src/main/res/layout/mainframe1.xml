@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/black">
+
+    <!--빈차등 매뉴화면-->
+    <LinearLayout
+        android:id="@+id/menu_frame_layout"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <com.konai.appmeter.driver_am.util.FontFitTextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="빈차등 메뉴"
+            android:textColor="@color/white"/>
+    </LinearLayout>
+
+    <!-- 빈차화면 -->
+    <LinearLayout
+        android:visibility="visible"
+        android:id="@+id/mainframe1_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="15dp">
+
+        <LinearLayout
+            android:layout_weight="0.5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <ImageView
+                    android:id="@+id/nbtn_connectble"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:background="@drawable/bluetooth_blue"/>
+                <com.konai.appmeter.driver_am.util.ButtonFitText
+                    android:id="@+id/nbtn_main_status"
+                    android:layout_width="65dp"
+                    android:layout_height="45dp"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="10dp"
+                    android:gravity="center"
+                    android:text="빈차"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:background="@drawable/grey_gradi_btn"/>
+                <com.konai.appmeter.driver_am.util.ButtonFitText
+                    android:visibility="invisible"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="10dp"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:background="@drawable/grey_gradi_btn"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+                <com.konai.appmeter.driver_am.util.FontFitTextView
+                    android:layout_weight="0.2"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical|right"
+                    android:textColor="@color/white"/>
+                <com.konai.appmeter.driver_am.util.FontFitTextView
+                    android:id="@+id/ntv_status"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical|right"
+                    android:text="심야 20%"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"/>
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_weight="0.6"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            android:layout_gravity="bottom"
+            android:layout_marginTop="20dp">
+
+            <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:id="@+id/ntv_addpayment"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:gravity="center_vertical|right"
+                android:text="추가 1500"
+                android:textStyle="bold"
+                android:textColor="@color/orange"/>
+
+            <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:id="@+id/ntv_rescallpay"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:gravity="center_vertical|right"
+                android:text="호출 1000"
+                android:textStyle="bold"
+                android:textColor="@color/green"/>
+        </LinearLayout>
+
+
+        <RelativeLayout
+            android:layout_weight="1.5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp">
+
+            <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:id="@+id/ntv_totalpay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|right"
+                android:text="3,400"
+                android:textColor="@color/white" />
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+
+
+
+
+
+</LinearLayout>

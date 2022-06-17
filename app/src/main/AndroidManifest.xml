@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.konai.appmeter.driver_am">
+    <!-- 앱에서 기기검색을 시작하거나 블루투스 설정 조작하기 위한 권한 -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" /> <!-- 블루투스 스캔을 사용하여 사용자 위치에 대한 정보 수집 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
+
+    <uses-permission android:name="android.permission.READ_CONTACTS" /> <!-- 이미 페어링된 기기와 통신해야할 경우 -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> <!-- 블루투스 기기검색 -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
         android:allowBackup="true"
@@ -10,27 +30,25 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".view.DriverRegisterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".view.MemberCertActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="true"
-            android:screenOrientation="sensor">
 
-        </activity>
+        <service
+            android:name=".service.AwindowService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.SYSTEM_ALERT_WINDOW" />
+
         <activity
             android:name=".view.DrawerBaseActivity"
             android:exported="true" />
         <activity
             android:name=".view.InfoActivity"
-            android:exported="false" />
+            android:exported="false" /> <!-- 가로버전 -->
+        <!-- android:configChanges="orientation|screenSize|keyboardHidden" -->
+        <!-- android:screenOrientation="sensor" -->
         <activity
             android:name=".view.MainActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="true"
-            android:screenOrientation="sensor">
+            android:configChanges="screenSize|keyboardHidden"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

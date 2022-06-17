@@ -2,4 +2,9 @@
     <string name="app_name">KonaiAppMeterAM</string>
     <string name="menu_drawer_open">Drawer Open</string>
     <string name="menu_drawer_close">Drawer Close</string>
+    <string name="info_permission_overlay">다른화면위에 그리기라는 권한이 필요합니다.</string>
+    <string name="setting_dialog_ok">확인</string>
+    <string name="ble_connected">빈차등과 연결 되었습니다</string>
+    <string name="ble_disconnected">빈차등과 연결이 끊어졌습니다</string>
+    <string name="drive_toast">주행중에는 빈차등 메뉴를 볼 수 없습니다.</string>
 </resources>

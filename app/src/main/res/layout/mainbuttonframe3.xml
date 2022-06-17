@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <LinearLayout
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="2dp">
+        <com.konai.appmeter.driver_am.util.ButtonFitText
+            android:id="@+id/nbtn_menu"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:gravity="center|center_vertical"
+            android:background="@drawable/grey_gradi_btn"
+            android:textColor="@color/white"
+            android:layout_marginRight="1dp"
+            android:padding="10dp"
+            android:text="메뉴"/>
+
+        <com.konai.appmeter.driver_am.util.ButtonFitText
+            android:id="@+id/nbtn_complex"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/grey_gradi_btn"
+            android:gravity="center|center_vertical"
+            android:padding="10dp"
+            android:text="복합"
+            android:textColor="@color/white" />
+
+        <com.konai.appmeter.driver_am.util.ButtonFitText
+            android:id="@+id/nbtn_login"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:gravity="center|center_vertical"
+            android:background="@drawable/grey_gradi_btn"
+            android:textColor="@color/white"
+            android:padding="12dp"
+            android:text="로그인"
+            android:textStyle="bold"
+            android:layout_marginLeft="1dp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="5dp">
+
+        <com.konai.appmeter.driver_am.util.ButtonFitText
+            android:id="@+id/nbtn_arrived"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/grey_gradi_btn"
+            android:gravity="center|center_vertical"
+            android:padding="10dp"
+            android:text="도착"
+            android:textColor="@color/white" />
+
+        <com.konai.appmeter.driver_am.util.ButtonFitText
+            android:id="@+id/nbtn_addpayment"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:gravity="center|center_vertical"
+            android:background="@drawable/grey_gradi_btn"
+            android:textColor="@color/white"
+            android:layout_marginLeft="1dp"
+            android:padding="10dp"
+            android:text="추가"/>
+    </LinearLayout>
+
+
+</LinearLayout>
