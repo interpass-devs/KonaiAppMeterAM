@@ -103,7 +103,7 @@ public class AMPacket {
 
     }
 
-    public String GetString(byte[] v, int nlen) {
+    public String GetString(byte[] v, int nlen) {  //원본/ LENGTH
         String stmp = "";
         for(int i = 0; i < nlen; i++)
         {
@@ -111,7 +111,6 @@ public class AMPacket {
         }
 
         return stmp;
-
     }
 
     public String GetDate(byte[] v) {

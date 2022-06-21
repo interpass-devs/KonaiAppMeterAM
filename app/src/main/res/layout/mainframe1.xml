@@ -20,6 +20,31 @@
             android:textColor="@color/white"/>
     </LinearLayout>
 
+
+    <!--추가금액 화면-->
+    <LinearLayout
+        android:id="@+id/add_fare_frame_layout"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="15dp">
+        <com.konai.appmeter.driver_am.util.FontFitTextView
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:gravity="center_vertical|center"
+            android:text="추가금액 입력"
+            android:textColor="@color/grey_light"/>
+        <com.konai.appmeter.driver_am.util.FontFitTextView
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:gravity="center_vertical|right"
+            android:text="0원"
+            android:textColor="@color/white"/>
+    </LinearLayout>
+
     <!-- 빈차화면 -->
     <LinearLayout
         android:visibility="visible"

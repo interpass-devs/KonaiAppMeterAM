@@ -21,16 +21,23 @@ import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.util.ByteArrayBuffer;
 import com.konai.appmeter.driver_am.service.AwindowService;
 import com.konai.appmeter.driver_am.setting.AMBlestruct;
 import com.konai.appmeter.driver_am.setting.setting;
 import com.konai.appmeter.driver_am.view.MainActivity;
+
+import java.io.ByteArrayInputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 public class AMBluetoothManager {
 
+    int outDataIndex;
+    byte[] outputData;
     private Handler mHandler;
     private String mDrvnum = "";
     String ble ="connectBLE";
@@ -73,12 +80,30 @@ public class AMBluetoothManager {
     private AMPacket outpkt = null;
     private static byte[] packetdata;
     public byte[] outpacket = null;
+    int m_nQueuedSize = 0;
+    ByteArrayBuffer outbuffer = null;
 
 
 
     public AMBluetoothManager(Context context, AwindowService service) {
         mContext = context;
         windowService = service;
+
+        if (topkt == null) {
+            topkt = new AMPacket(); //데이터 보낼때 (아스키 변환)
+        }
+
+        if (outpkt == null) {
+            outpkt = new AMPacket(); //데이터 받을때 (아스키 변환)
+        }
+
+        if (packetdata == null) {
+            packetdata = new byte[2048];
+        }
+
+        if (outputData == null) {
+            outputData = new byte[2048];
+        }
     }
 
     public AMBluetoothManager(Context context) {
@@ -332,6 +357,8 @@ public class AMBluetoothManager {
         mBluetoothAddress = setting.BLUETOOTH_DEVICE_ADDRESS;
         mConnectionState = STATE_CONNECTING;
 
+        makepacketsend("15");
+
         return true;
     }
 
@@ -351,6 +378,7 @@ public class AMBluetoothManager {
                         //블루투스 아이콘 색 변경
                         setting.BLE_STATE = true;
                         //status - 아이콘 변경
+//                        AMBleReciveData()
 //                        iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
 //                        Toast.makeText(mContext, R.string.ble_connected, Toast.LENGTH_SHORT).show();
                         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
@@ -413,8 +441,19 @@ public class AMBluetoothManager {
                 @Override
                 public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-//                        broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                            AMBleReciveData(ACTION_DATA_AVAILABLE, characteristic);
+                            Log.d("receive_read", characteristic+"");
+                        }
                     }
+                }
+
+                @Override
+                public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+                    super.onCharacteristicChanged(gatt, characteristic);
+                    AMBleReciveData(ACTION_DATA_AVAILABLE, characteristic);
+                    Log.d("receive_change", characteristic+"");
+
                 }
             }; //mGattCallback..
 
@@ -502,7 +541,8 @@ public class AMBluetoothManager {
 
 
     //앱 -> 빈차등 상태값 요청
-    synchronized public boolean makePacketSendRequest(String requestCode) {
+    //thread 없이 바로연결
+    synchronized public boolean makepacketsend(String requestCode) {
 
         byte[] mData = null;
         topkt.SetPoint(0);
@@ -513,18 +553,254 @@ public class AMBluetoothManager {
 
         switch (requestCode) {
 
-            case AMBlestruct.curReponseCode:
+            case AMBlestruct.curRequestCode:
 
                 topkt.SetString(packetdata, "15");
 
-                topkt.SetString(packetdata, AMBlestruct.mSState);
+                Log.d("send_time", getCurDateString());
+
+                topkt.SetString(packetdata, getCurDateString());
+
+                topkt.SetString(packetdata, "05");
+//                topkt.SetString(packetdata, AMBlestruct.mSState);
+
 
                 Log.d("send_빈차등차량상태전송", AMBlestruct.mSState);
 
                 break;
         }
 
+        topkt.SetString(packetdata, topkt.GetAMBleCRC(packetdata));
+        topkt.Setbyte(packetdata, (byte) 0x03);
+        mData = new byte[topkt.point];
+        System.arraycopy(packetdata, 0, mData, 0, topkt.point);
+        write(mData);
+
+        Log.d("send_write", mData+"");
+
         return true;
+    }
+
+
+    public boolean write(byte[] data) {
+
+        data[0] = 0x02;
+
+        data[data.length - 1] = 0x03;
+
+        Log.d("send_data_1", data.length+"");
+        Log.d("send_data_2", data.toString());
+
+
+        if(setting.gUseBLE) {
+            if (mBluetoothGatt == null || m_gattCharTrans == null) {
+//                Log.d(TAG, "# BluetoothGatt not initialized");
+                return false;
+            }
+
+            m_gattCharTrans.setValue(data);
+            m_gattCharTrans.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+            mBluetoothGatt.writeCharacteristic(m_gattCharTrans);
+        }
+
+        Log.d("send_char", m_gattCharTrans.toString());
+
+        final StringBuilder stringBuilder = new StringBuilder(data.length);
+        for (byte byteChar : data)
+            stringBuilder.append(String.format("%02X ", byteChar));
+        Log.d("send_builder", "++++++++send(" + data.length + ")" + stringBuilder.toString());
+
+        return true;
+    }
+
+
+    private void AMBleReciveData(final String action, final BluetoothGattCharacteristic characteristic) {
+
+        final Intent i = new Intent(action);
+
+        try {
+
+//            StringBuilder builder = new StringBuilder();
+//            builder.append(characteristic);
+
+            Log.d("receive_outdata", characteristic.getValue()+"");
+
+            byte[] outdata = characteristic.getValue();
+//            packetData[1024]
+
+//            Log.d("receive_outdata", outdata.toString());
+
+            //me:
+            //  outdata를 Q에 먼저 쌓아넣고 Q에 데이터가 있는지 없는지를 Thread 안에서 확인하고
+            // 02/ 03 로 아래처럼 구분하여 데이터 한줄을 만든 뒤  ->  파싱
+
+            if (outdata != null && outdata.length > 0) {
+
+
+//                if (true) {
+                    final StringBuilder stringBuilder = new StringBuilder(outdata.length);
+                    for (byte byteChar : outdata) {
+
+                        switch (byteChar) {
+                            case 0x02:
+//                                outputArray = outdata;
+//                                System.arraycopy(outdata, 0, ,);
+                                outDataIndex = 0;
+                                outputData[outDataIndex++] = byteChar;
+                                break;
+
+                            case 0x03:
+                                outputData[outDataIndex++] = byteChar;
+                                Log.d("outputData", outDataIndex+"");
+
+                                parsingend_AMBle(outputData, outDataIndex);  //형변환 파싱
+                                break;
+
+                                default:
+                                    outputData[outDataIndex] = byteChar;
+                                    outDataIndex++;
+                                    break;
+                        }
+
+                        //me: 바로 파싱..
+                        // parsingend_AMBle(outdata, outdata.length);
+//                        stringBuilder.append(String.format("%02X ", byteChar));
+//                        Log.d("receive_builder", outdata.length+": "+stringBuilder.toString());
+                    }
+
+                    Log.d("receive_builder", outdata.length+": "+stringBuilder.toString());
+                }
+
+//            }
+
+            outdata = null;
+
+        }catch (Exception e) {
+            e.printStackTrace();
+            Log.d("receive_error", e.toString());
+        }
+    }
+
+
+
+
+    public void checkgetData_AMBle(byte[] bytetmp, int bytesRead) {
+
+        byte[] outPack;
+        byte[] outdata;
+
+        int stCnt = 0;
+        int enCnt = 0;
+
+        int reStCnt = 0;
+
+        boolean stIdx = false;
+        boolean edIdx = false;
+
+        for(int i=0; i<bytesRead; i++)
+        {
+            if(bytetmp[i] == (byte)0x02)
+            {
+                if(!stIdx) {
+                    stIdx = true;
+                    stCnt = i;
+                }
+            }
+            else if(bytetmp[i] == (byte)0x03)
+            {
+                if(i>0)
+                {
+                    edIdx = true;
+                    enCnt = i;
+                    reStCnt = i+1;
+                }
+            }
+
+            if(stIdx && edIdx)
+            {
+                if(enCnt - stCnt + 1 > 0) //20220307 tra..sh
+                {
+                    outdata = new byte[enCnt - stCnt + 1];
+                    System.arraycopy(bytetmp, stCnt, outdata, 0, enCnt - stCnt + 1);
+                    parsingend_AMBle(outdata, outdata.length);
+//                Log.d(TAG, "dtgform.distance parsingend_AMBle end");
+                    stIdx = false;
+                    edIdx = false;
+                    outdata = null;
+                }
+            }
+        }
+
+        if(bytesRead - reStCnt > 0)
+        {
+            outPack = new byte[bytesRead - reStCnt];
+            System.arraycopy(bytetmp, reStCnt, outPack, 0, bytesRead - reStCnt);
+            outbuffer.clear();
+            outbuffer.append(outPack, 0, outPack.length);
+            outPack = null;
+
+        }
+        else
+            outbuffer.clear();
+
+    }
+
+
+    synchronized public void parsingend_AMBle(byte[] outdata, int packetlen) {
+
+        String code = outpkt.GetCheckCode(outdata);
+
+        if(outpkt.GetAMBleCRC(outdata, packetlen).equals(String.format("%c%c", outdata[packetlen -3], outdata[packetlen - 2])) == false)
+        {
+            Log.d("parsing_", "========receive(" + code + ")" + outpkt.GetAMBleCRC(outdata, packetlen)
+                    + "  " + String.format("-------%c%c", outdata[packetlen -3], outdata[packetlen - 2]));
+        }
+
+        outpkt.SetPoint(3);  //날짜시간 부터 시작
+
+
+        switch (code) {  //택시요금수신, 미터기모드
+
+            case AMBlestruct.curReponseCode:
+//                outpkt.SetPoint(17);
+//                AMBlestruct.curReponseCode = outpkt.GetString(outdata, 2);
+                AMBlestruct.AMReceiveFare.M_RECEIVE_TIME = outpkt.GetString(outdata, 14);  //날짜시간
+                AMBlestruct.AMReceiveFare.M_CARNUM = outpkt.GetString(outdata, 12);     //차량번호
+                AMBlestruct.AMReceiveFare.M_STATE = outpkt.GetString(outdata, 1);  //버튼값   //ME: 여기서 받은 버튼값을 MainActivity 에서 확인하여 화면전환..
+
+                AMBlestruct.AMReceiveFare.M_START_FARE = outpkt.GetString(outdata, 6);  //승차요금
+                AMBlestruct.AMReceiveFare.M_CALL_FARE = outpkt.GetString(outdata, 4);   //호출요금
+                AMBlestruct.AMReceiveFare.M_ETC_FARE = outpkt.GetString(outdata, 6);    //기타요금
+                AMBlestruct.AMReceiveFare.M_EXTRA_FARE_TYPE = outpkt.GetString(outdata, 4); //할증여부
+                AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = outpkt.GetString(outdata, 3); //할증율
+
+                AMBlestruct.AMReceiveFare.M_START_TIME = outpkt.GetString(outdata, 14);  //승차시간
+                AMBlestruct.AMReceiveFare.M_START_X = outpkt.GetString(outdata, 14);  //승차좌표-X
+                AMBlestruct.AMReceiveFare.M_START_Y = outpkt.GetString(outdata, 14);  //승차좌표-Y
+                AMBlestruct.AMReceiveFare.M_END_X = outpkt.GetString(outdata, 14);  //하차좌표-X
+                AMBlestruct.AMReceiveFare.M_END_Y = outpkt.GetString(outdata, 14);  //하차좌표-Y
+                AMBlestruct.AMReceiveFare.M_START_DISTANCE = outpkt.GetString(outdata, 14);  //승차거리
+                AMBlestruct.AMReceiveFare.M_EMPTY_DISTANCE = outpkt.GetString(outdata, 14);  //빈차거리
+
+                break;
+        }
+
+    }
+
+
+
+
+
+
+
+
+    private String getCurDateString()
+    {
+        SimpleDateFormat format1 = new SimpleDateFormat ( "yyyyMMddHHmmss");
+
+        Calendar time = Calendar.getInstance();
+
+        return format1.format(time.getTime());
     }
 
 
