@@ -35,6 +35,7 @@
             android:name=".service.AwindowService"
             android:enabled="true"
             android:exported="true"
+            android:foregroundServiceType="location"
             android:permission="android.permission.SYSTEM_ALERT_WINDOW" />
 
         <activity

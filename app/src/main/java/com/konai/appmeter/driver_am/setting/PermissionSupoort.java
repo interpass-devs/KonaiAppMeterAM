@@ -21,12 +21,12 @@ public class PermissionSupoort {
     private String[] permissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.BLUETOOTH,
-            Manifest.permission.BLUETOOTH_CONNECT,
             Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.SYSTEM_ALERT_WINDOW
+            Manifest.permission.BLUETOOTH_CONNECT,
+//            Manifest.permission.SYSTEM_ALERT_WINDOW
     };
 
-    private List permissionList;
+    private List<Object> permissionList;
 
     //요청결과값
     private final int MULTIPLE_PERMISSIONS = 1023;
@@ -49,6 +49,7 @@ public class PermissionSupoort {
                 permissionList.add(pm);
             }
         }
+
         if (!permissionList.isEmpty()) {
             return false;
         }
@@ -60,13 +61,13 @@ public class PermissionSupoort {
     public void requestPermission() {
         ActivityCompat.requestPermissions(
                 activity,
-                (String[]) permissionList.toArray(new String[permissionList.size()]),
+                permissionList.toArray(new String[permissionList.size()]),
                 MULTIPLE_PERMISSIONS
         );
     }
 
 
-    //요청한 권한에 대한 결과값 판단 및 처리
+    //요청한 권한에 대한 결과 및 처리
     public boolean permissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
         //requestCode가 아까 위에 final로 선언하였던 숫자와 맞는지, 결과값의 길이가 0보다는 큰지 먼저 체크

@@ -12,20 +12,25 @@ import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.fonts.Font;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,6 +44,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -58,13 +64,41 @@ import com.konai.appmeter.driver_am.util.ButtonFitText;
 import com.konai.appmeter.driver_am.util.FontFitTextView;
 import com.konai.appmeter.driver_am.util.MyTouchListener;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
     private PermissionSupoort mPermission;
+
+    ArrayList<String> deviceList = new ArrayList<>();
+    ArrayAdapter adapter;
+    Set<BluetoothDevice> devices;
+    String deviceName, deviceAddress;
+    DiscoveryResultReceiver discoveryResultReceiver;
+
+    BluetoothSocket bluetoothSocket;
+    OutputStream outputStream;
+    InputStream inputStream;
+
+    BluetoothAdapter bluetoothAdapter;
+    BluetoothSocket socket;
+    DataInputStream dis;
+    DataOutputStream dos;
+    ClientThread clientThread;
+    static final UUID BT_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
+
 
     private AMBluetoothManager mBluetoothLE = null;
     private BluetoothManager mBluetoothManager = null;
@@ -86,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
-//    public static LocService m_Service;
+    //    public static LocService m_Service;
     public static AwindowService windowService = null;
 
     int lbs_x = -1;
@@ -104,18 +138,16 @@ public class MainActivity extends AppCompatActivity {
     private ButtonFitText btn_menu, btn_complex, btn_login, btn_arrive, btn_add_pay;
     private ButtonFitText btn_empty, btn_drive, btn_call, btn_pay;
     private ImageView iv_ble, iv_wifi;
-    private FontFitTextView tv_night_status, tv_add_pay, tv_rescall_pay, tv_total_pay;
-    private ButtonFitText btn_main_status;
+    private FontFitTextView tv_night_status, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status;
     private Boolean menuClicked = true;
 
     private RadioButton btn_close, btn_ok;
 
-    Thread testThread = new Thread();
 
     private AwindowService.mainCallBack mCallback = new AwindowService.mainCallBack() {
         @Override
         public void serviceBleStatus(boolean bleStatus) {
-            Log.d("mCallback_bleStatus", bleStatus+"");
+            Log.d("mCallback_bleStatus", bleStatus + "");
 
             //블루투스 상태값 변경
             display_bleStatus(bleStatus);
@@ -123,9 +155,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void serviceMeterState(int btnType, int mFare) {
-            Log.d("mCallback_meterState", btnType+", "+mFare);
+            Log.d("mCallback_meterState", btnType + ", " + mFare);
 
-            long value = Long.parseLong(mFare+"");
+            long value = Long.parseLong(mFare + "");
             DecimalFormat format = new DecimalFormat("###,###");
 
             //상태값 요금 변경
@@ -134,26 +166,21 @@ public class MainActivity extends AppCompatActivity {
             if (btnType == AMBlestruct.MeterState.PAY) {
                 btn_pay.performClick();
                 btn_main_status.setText("지불");
-                btn_main_status.setTextColor(getResources().getColor(R.color.black));
-                btn_main_status.setBackgroundResource(R.drawable.orange_gradi_btn);
+                btn_main_status.setTextColor(getResources().getColor(R.color.light_orange));
 
-            }else if (btnType == AMBlestruct.MeterState.EMPTY) {
+            } else if (btnType == AMBlestruct.MeterState.EMPTY) {
                 btn_empty.performClick();
                 btn_main_status.setText("빈차");
                 btn_main_status.setTextColor(getResources().getColor(R.color.white));
-                btn_main_status.setBackgroundResource(R.drawable.grey_gradi_btn);
 
-            }else if (btnType == AMBlestruct.MeterState.DRIVE) {
+            } else if (btnType == AMBlestruct.MeterState.DRIVE) {
                 btn_drive.performClick();
                 btn_main_status.setText("주행");
-                btn_main_status.setTextColor(getResources().getColor(R.color.black));
-                btn_main_status.setBackgroundResource(R.drawable.yellow_gradi_btn);
+                btn_main_status.setTextColor(getResources().getColor(R.color.yellow));
 
-            }else if (btnType == AMBlestruct.MeterState.CALL) {
+            } else if (btnType == AMBlestruct.MeterState.CALL) {
                 btn_call.performClick();
                 btn_main_status.setText("호출");
-                btn_main_status.setTextColor(getResources().getColor(R.color.black));
-                btn_main_status.setBackgroundResource(R.drawable.green_gradi_btn);
             }
         }
     };
@@ -162,10 +189,11 @@ public class MainActivity extends AppCompatActivity {
     public void display_bleStatus(boolean ble) {
         if (ble == true) {
             iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
-        }else {
+        } else {
             iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
         }
     }
+
     public void display_Runstate(String mFare) {
         tv_total_pay.setText(mFare);
     }
@@ -174,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(@NonNull Message msg) {
 
-            Log.d("displayHandler", msg+"");
+            Log.d("displayHandler", msg + "");
 
 //            super.handleMessage(msg);
 
@@ -214,29 +242,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.d("main_", "onCreate");
-
         mContext = this;
 
         //서비스가 백그라운드에서 돌아가고 있는지 확인
 //        m_Service.isLocServiceRunning(mContext);
 
-
         setting.APP_VERSION = Double.parseDouble(BuildConfig.VERSION_NAME);
 
-        if(windowService == null) {
+        if (windowService == null) {
             bindService(new Intent(getApplicationContext(),
                     AwindowService.class), mServiceConnection, Context.BIND_AUTO_CREATE); //20180117
+
+            if (mBluetoothLE != null) {
+                windowService.connectAM();
+            }
         }
 
-
-
-
-
-
-
-
-        //me:[저전력 블루투스 연결 설정]
 
         //블루투스 관리자객체 소환
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -256,22 +277,83 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        //me: 블루투스 페어링 설정
+//        locationPermission();
+
+        bleConnPermission();
+
+        bleScanPermission();
+
+        adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, deviceList);
+
+        //블루투스 관리자객체 소환
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        devices = mBluetoothAdapter.getBondedDevices();
+        for (BluetoothDevice device : devices) {
+            deviceName = device.getName();
+            ;
+            deviceAddress = device.getAddress();
+
+            deviceList.add(deviceName + ": " + deviceAddress);
+            Log.d("deviceList", deviceList + "");  //[AM1011234: 3C:A5:51:85:1A:36]
+
+            if (deviceName.equals("AM1011234")) {
+                deviceAddress = device.getAddress();
+                bluetoothDevice = device;
+
+                clientThread = new ClientThread(deviceAddress);
+                clientThread.start();
+                break;
+
+            }
+
+        }
+
+
+//        clientThread = new ClientThread(deviceAddress);
+
+
+        //새로운 잔치 broadCast
+//        discoveryResultReceiver = new DiscoveryResultReceiver();
+//        IntentFilter filter = new IntentFilter();
+//        filter.addAction(BluetoothDevice.ACTION_FOUND);
+//        registerReceiver(discoveryResultReceiver, filter);
+//
+//        IntentFilter filter_end = new IntentFilter();
+//        filter_end.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+//        registerReceiver(discoveryResultReceiver, filter_end);
+//
+//
+//        mBluetoothAdapter.startDiscovery();
+
+
+
         //me: 권한설정
 
-        //앱위에그리기 권한
-        oerlayPermission();
+        /**
+         //앱위에그리기 권한
+         oerlayPermission();
 
-        //위치권한
-        locationPermission();
+         //위치권한
+         locationPermission();
 
-        //블루투스 연결 권한
-//        bleConnPermission();
-//
-//        //블루투스 스캔 권한
-//        bleScanPermission();
-
-
-
+         //블루투스 연결 권한
+         //        bleConnPermission();
+         //
+         //        //블루투스 스캔 권한
+         //        bleScanPermission();
+         **/
 
 
         viewFrameVariablesConfiguration();
@@ -279,36 +361,156 @@ public class MainActivity extends AppCompatActivity {
 
         mBluetoothLE = new AMBluetoothManager(mContext);
 
-
     }//onCreate
+
+
+    class DiscoveryResultReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String action = intent.getAction();
+
+            if (action.equals(BluetoothDevice.ACTION_FOUND)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+                if (device.getName() != null) {
+                    deviceName = device.getName();
+
+                    Log.d("ClientThread_d", deviceName);
+
+                    if (deviceName.equals("AM1011234")) {
+
+                        deviceAddress = device.getAddress();
+
+                        Log.d("ClientThread_device", deviceName+", "+deviceAddress);
+
+//                        Intent intent1 = getIntent()
+
+
+                    }
+                }
+                deviceList.add(device.getName() + ": " + device.getAddress());
+                adapter.notifyDataSetChanged();
+
+            } else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
+                Toast.makeText(mContext, "블루투스 탐색 완료", Toast.LENGTH_SHORT).show();
+            }
+
+        }
+    }
+
+
+    private BluetoothSocket createBluetoothSocket(BluetoothDevice device)
+            throws IOException {
+        if(Build.VERSION.SDK_INT >= 10){
+            try {
+                final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", new Class[] { UUID.class });
+                return (BluetoothSocket) m.invoke(device, BT_UUID);
+            } catch (Exception e) {
+                Log.e("socket", "Could not create Insecure RFComm Connection",e);
+            }
+        }
+        return  device.createRfcommSocketToServiceRecord(BT_UUID);
+    }
+
+
+    class ClientThread extends Thread{
+
+        BluetoothSocket socket;
+        String address;
+
+        public ClientThread(String address) {
+            BluetoothSocket tmp = null;
+            this.address = address;
+
+            try {
+//                tmp = bluetoothDevice.createInsecureRfcommSocketToServiceRecord(BT_UUID);
+                tmp = createBluetoothSocket(bluetoothDevice);
+            }catch (Exception e) {
+
+            }
+            socket = tmp;
+        }
+
+        @Override
+        public void run() {
+            mBluetoothAdapter.cancelDiscovery();
+
+            // mac 주소에 해당하는 BluetoothDevice 객체를 얻어오기
+//            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//            devices = mBluetoothAdapter.getRemoteDevice(address);
+
+            //원격디바이스와 소켓연결 작업 수행
+            try {
+//                socket= bluetoothDevice.createInsecureRfcommSocketToServiceRecord(BT_UUID);
+                 socket.connect();   //연결시도
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("ClientThread_run", "서버 연결 성공");
+                    }
+                });
+
+                //접속된 Socket 을 통해 데이터를 주고받는 무지개롣 만들기
+//                dis= new DataInputStream(socket.getInputStream());
+//                dos= new DataOutputStream(socket.getOutputStream());
+//
+//                //스트림을 통해 원하는 데이터 주고받기
+//                dos.writeUTF("안녕하세요.");   //UTF: 한글도 가능한 문자열 인코딩방식
+//                dos.writeInt(50);
+//                dos.flush();
+
+
+            } catch (IOException e) {
+                Log.d("ClientThread_e", e.toString());
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        Log.d("main_", "onResume");
+        Log.d("connectAM_main", "onResume");
         Log.d("main_", setting.BLE_STATE+":  "+setting.BLUETOOTH_DEVICE_ADDRESS);
 
         if (setting.BLUETOOTH_DEVICE_ADDRESS.equals("")) {
             Log.d("main_","device not found");
         }
 
-
+        /**
         //블루투스 연결 권한
         bleConnPermission();
 
         //블루투스 스캔 권한
         bleScanPermission();
+        **/
     }
 
     //위치권한데 대한 동적퍼미션 작업 (Location permission)
     public void locationPermission() {
         String permission = Manifest.permission.ACCESS_FINE_LOCATION;
+        String permission2 = Manifest.permission.ACCESS_COARSE_LOCATION;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {  //23
             if (checkSelfPermission(permission) == PackageManager.PERMISSION_DENIED) {
                 requestPermissions(new String[]{permission}, ACCESS_FINE_LOCATION_DENIED);
             }
 //            bleScanPermission();
+//            if (checkSelfPermission(new String[]))
         }
 
     }
@@ -352,6 +554,13 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
+            case 1000:
+                if (resultCode == RESULT_OK) {
+//                    clientThread = new ClientThread(deviceAddress);
+//                    clientThread.start();
+                }
+//                discoveryResultReceiver
+                break;
             //위치권한 설정을 거부했을때
             case ACCESS_FINE_LOCATION_DENIED:
                 Toast.makeText(mContext, "위치권한을 거부하였습니다.", Toast.LENGTH_SHORT).show();
@@ -453,7 +662,7 @@ public class MainActivity extends AppCompatActivity {
 
         /*메인화면버튼 frame1*/
         iv_ble = (ImageView) viewframe1.findViewById(R.id.nbtn_connectble);
-        btn_main_status = (ButtonFitText) viewframe1.findViewById(R.id.nbtn_main_status);
+        btn_main_status = (FontFitTextView) viewframe1.findViewById(R.id.nbtn_main_status);
         tv_night_status = (FontFitTextView) viewframe1.findViewById(R.id.ntv_status);
         tv_add_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_addpayment);
         tv_rescall_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_rescallpay);
@@ -569,41 +778,41 @@ public class MainActivity extends AppCompatActivity {
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
                     add_fare_frame_layout.setVisibility(View.GONE);
-                    setEmptyStatus( btn_empty, btn_drive, btn_call, btn_pay);
+//                    setEmptyStatus( btn_empty, btn_drive, btn_call, btn_pay);
 //                    tv_night_status.setVisibility(View.GONE);
                     btn_menu.setClickable(true);
                     btn_menu.setBackgroundResource(R.drawable.grey_gradi_btn);
-                    //me: 버튼값 빈차등으로 보내기
-                    windowService.update_BLEmeterstate("05");
+                    //me: 버튼 -> 빈차등
+                    windowService.update_BLEmeterstate(AMBlestruct.B_EMPTY);
                     break;
                 case R.id.nbtn_drivestart:  //주행버튼
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
                     add_fare_frame_layout.setVisibility(View.GONE);
-                    setDriveStatus(btn_empty, btn_drive, btn_call, btn_pay);
+//                    setDriveStatus(btn_empty, btn_drive, btn_call, btn_pay);
                     //주행버튼 클릭 -> 메뉴버튼 클릭 못하게
                     btn_menu.setClickable(false);
 //                    Toast.makeText(mContext, R.string.drive_toast, Toast.LENGTH_SHORT).show();
-                    //me: 버튼값 빈차등으로 보내기
-                    windowService.update_BLEmeterstate("20");
+                    //me: 버튼 -> 빈차등
+                    windowService.update_BLEmeterstate(AMBlestruct.B_DRIVE);
                     break;
 
                 case R.id.nbtn_reserve:    //호출버튼
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
                     add_fare_frame_layout.setVisibility(View.GONE);
-                    setReserveStatus(btn_empty, btn_drive, btn_call, btn_pay);
-                    //me: 버튼값 업데이트 -> 빈차등으로 보내기
-                    windowService.update_BLEmeterstate("33");
+//                    setReserveStatus(btn_empty, btn_drive, btn_call, btn_pay);
+                    //me: 버튼 -> 빈차등
+                    windowService.update_BLEmeterstate(AMBlestruct.B_CALL);
 //                    tv_rescall_pay.setVisibility(View.VISIBLE); //빈차등으로 부터 호출값 받으면 보이기
                     break;
 
                 case R.id.nbtn_driveend:  //지불버튼
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
-                    setPayStatus( btn_empty, btn_drive, btn_call, btn_pay);
-                    //me: 버튼값 빈차등으로 보내기
-                    windowService.update_BLEmeterstate("01");
+//                    setPayStatus( btn_empty, btn_drive, btn_call, btn_pay);
+                    //me: 버튼 -> 빈차등
+                    windowService.update_BLEmeterstate(AMBlestruct.B_PAY);
                     break;
 
                 /*frame3 메인상단버튼*/
@@ -614,6 +823,8 @@ public class MainActivity extends AppCompatActivity {
                     menu_layout.setVisibility(View.VISIBLE);
                     add_fare_frame_layout.setVisibility(View.GONE);
                     setEmptyStatus(btn_empty, btn_drive, btn_call, btn_pay);
+                    //me: 버튼 -> 빈차등
+                    windowService.menu_meterState(AMBlestruct.APP_MENU_REQUEST_CODE);
                     break;
                 case R.id.nbtn_complex:  //복합 btn
                     break;

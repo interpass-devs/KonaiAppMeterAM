@@ -122,10 +122,15 @@ public class AwindowService extends Service {
         mainThread.start();
 
 
+
         if (setting.gUseBLE == true) {
             Log.d("start_scan", "gBLE == true");
             setBleScan();
+        }else {
+
+//            setBleScan();
         }
+
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -133,6 +138,8 @@ public class AwindowService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+//        connectAM();
 
 //        startForegroundService();
 
@@ -307,7 +314,7 @@ public class AwindowService extends Service {
     public void scanLeDevice(final boolean enable) {
         if (enable) {
             //stop scanning after a pre-defined scan period
-            mHandler = new Handler();
+//            mHandler = new Handler();
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -357,6 +364,7 @@ public class AwindowService extends Service {
                 // for ActivityCompat#requestPermissions for more details.
                 return;
             }
+
             mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
         } else {
             mBluetoothAdapter.startLeScan(mLeScanCallBack);
@@ -419,7 +427,7 @@ public class AwindowService extends Service {
 //                }
                 final String deviceName = device.getName();
 
-                if (deviceName.contains("AM")) {
+                if (deviceName.contains("AM1011234")) {
 
                     setting.BLUETOOTH_DEVICE_ADDRESS = device.getAddress();
                     setting.BLUETOOTH_DEVICE_NAME = device.getName();
@@ -475,7 +483,7 @@ public class AwindowService extends Service {
 //                        }
                         final String deviceName = device.getName();
                         if (deviceName != null && deviceName.equals("") == false) {
-                            if (deviceName.contains(mDrvnum)) {
+                            if (deviceName.contains("AM1011234")) {
                                 setting.BLUETOOTH_DEVICE_ADDRESS = device.getAddress();
                                 setting.BLUETOOTH_DEVICE_NAME = device.getName();
 
@@ -491,12 +499,17 @@ public class AwindowService extends Service {
 
     public boolean connectAM() {
 
-        if (mBluetoothLE != null)
+        if (mBluetoothLE != null) {
 
-            Log.d("connectAM","connectAM");
+            Log.d("connectAM","connectAM not null");
 
-        mBluetoothLE.connectAM();
+            mBluetoothLE.connectAM();
 //            mBluetoothLE.connectBLE();
+        }else {
+            Log.d("connectAM","connectAM null");
+        }
+
+
 
         return true;
     }
@@ -508,17 +521,19 @@ public class AwindowService extends Service {
         public void handleMessage(@NonNull Message msg) {
             Log.d("meterHandler_service", msg.what+"");
 
-            if (msg.what == 1) {  //블루투스 상태값
+            //status: 블루투스 상태값
+            if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE) {
 
                 if (setting.BLE_STATE == true) {
-                    mCallback.serviceBleStatus(true);
+                    mCallback.serviceBleStatus(true); //null obj??
                 }else {
                     mCallback.serviceBleStatus(false);
                 }
 
-            }else if (msg.what == 12) {  //빈차등 현재상태 수신값
+                //status: 빈차등 현재상태 수신값
+            }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE) {
 
-                Log.d("mfare_check", AMBlestruct.AMReceiveFare.M_START_FARE);
+                Log.d("mfare_check", AMBlestruct.AMReceiveFare.M_START_FARE+" + "+AMBlestruct.AMReceiveFare.M_CALL_FARE+" + "+AMBlestruct.AMReceiveFare.M_ETC_FARE);
 
                 if (AMBlestruct.AMReceiveFare.M_START_FARE != null) {
                     mfare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
@@ -529,6 +544,16 @@ public class AwindowService extends Service {
                 if (AMBlestruct.AMReceiveFare.M_STATE.equals("1")) {
 
                     Log.d("meterHandler_mState", AMBlestruct.AMReceiveFare.M_STATE);
+
+//                    mfare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE + AMBlestruct.AMReceiveFare.M_CALL_FARE + AMBlestruct.AMReceiveFare.M_ETC_FARE);
+
+                    int startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
+                    int callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);
+                    int etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);
+
+                    mfare = startFare + callFare + etcFare;
+
+                    Log.d("m_Sate", mfare+"");
 
                     mCallback.serviceMeterState(AMBlestruct.MeterState.PAY, mfare);
 
@@ -551,11 +576,10 @@ public class AwindowService extends Service {
                     mCallback.serviceMeterState(AMBlestruct.MeterState.CALL, mfare);
 
                 }
-
-            }else {
+                //status: 빈차등 메뉴 수신값
+            }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE) {
 
             }
-
         }
     };
 
@@ -563,6 +587,13 @@ public class AwindowService extends Service {
     public boolean update_BLEmeterstate(String sstate) {
         if (mBluetoothLE != null) {
             mBluetoothLE.update_AMmeterstate(sstate);
+        }
+        return true;
+    }
+
+    public boolean menu_meterState(String requestCode) {
+        if (mBluetoothLE != null) {
+            mBluetoothLE.menu_AMmeterState(requestCode);
         }
         return true;
     }

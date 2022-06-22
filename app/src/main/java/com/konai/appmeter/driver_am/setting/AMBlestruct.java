@@ -10,8 +10,10 @@ public class AMBlestruct {
     //me: 앱 -> 빈차등
     //엡이 실행되었을 때 요청하여 빈차등과 상태를 동기화한다.
     //빈승차 상태전송 명령
-    public static final String curRequestCode = "15";  //요청코드 == 빈차등 미터기의 현재상태를 요청한다.
-    public static final String curReponseCode = "19";  //응답코드
+    public static final String APP_REQUEST_CODE = "15";  //요청코드 == 빈차등 미터기의 현재상태를 요청한다.
+    public static final String METER_REQUEST_CODE = "19";  //응답코드
+    public static final String APP_MENU_REQUEST_CODE = "41";
+    public static final String METER_MENU_REQUEST_CODE = "42";
     //날짜시간
     public static String getCurDateString() {
         SimpleDateFormat format1 = new SimpleDateFormat ( "yyyyMMddHHmmss");
@@ -32,15 +34,23 @@ public class AMBlestruct {
     public static final String B_RECEIPT = "34";    //영수
     public static final String B_CLOSE = "50";      //후무
     public static final String B_CANCEL_PAY = "51"; //결제취소
+    public static final String B_MENU = "" ;
 
-    public static String mSState = "00";
+    public static String mSState = "00";  //미터기 현재상태
+    public static String menuBtnStatus = "1";  //0-닫기/ 1-열기
     public static boolean mbSStateupdated = false;
 
+    public static class AMReceiveMsg {
+        public static int MSG_CUR_BLE_STATE = 1;
+        public static int MSG_CUR_AM_STATE = 2;
+        public static int MSG_CUR_MENU_STATE = 3;
+    }
 
     //me: 빈차등 -> 앱
     //빈차등에서 상태가 바뀐 경우 전달한다.
     //주행 중 요금이 바뀐 경우 전달한다.
     public static class AMReceiveFare {
+
         public static String M_RECEIVE_TIME; //날짜시간
         public static String M_CARNUM;     //차량번호
         public static String M_STATE; //버튼값 (지불/빈차/주행/할증)
