@@ -73,7 +73,7 @@
                     android:background="@drawable/bluetooth_blue"/>
                 <com.konai.appmeter.driver_am.util.ButtonFitText
                     android:id="@+id/nbtn_main_status"
-                    android:layout_width="65dp"
+                    android:layout_width="85dp"
                     android:layout_height="45dp"
                     android:layout_gravity="center"
                     android:layout_marginLeft="10dp"
@@ -105,6 +105,7 @@
                     android:gravity="center_vertical|right"
                     android:textColor="@color/white"/>
                 <com.konai.appmeter.driver_am.util.FontFitTextView
+                    android:visibility="invisible"
                     android:id="@+id/ntv_status"
                     android:layout_weight="1"
                     android:layout_width="0dp"
@@ -127,6 +128,7 @@
             android:layout_marginTop="20dp">
 
             <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:visibility="invisible"
                 android:id="@+id/ntv_addpayment"
                 android:layout_weight="1"
                 android:layout_width="match_parent"
@@ -137,6 +139,7 @@
                 android:textColor="@color/orange"/>
 
             <com.konai.appmeter.driver_am.util.FontFitTextView
+                android:visibility="invisible"
                 android:id="@+id/ntv_rescallpay"
                 android:layout_weight="1"
                 android:layout_width="match_parent"
@@ -158,7 +161,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical|right"
-                android:text="3,400"
+                android:text="0"
                 android:textColor="@color/white" />
         </RelativeLayout>
 

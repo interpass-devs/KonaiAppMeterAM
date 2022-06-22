@@ -11,9 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
         android:layout_marginBottom="2dp">
         <com.konai.appmeter.driver_am.util.ButtonFitText
             android:id="@+id/nbtn_menu"
@@ -58,8 +55,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
         android:layout_marginBottom="5dp">
 
         <com.konai.appmeter.driver_am.util.ButtonFitText

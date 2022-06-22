@@ -3,6 +3,7 @@ package com.konai.appmeter.driver_am.view;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -30,6 +31,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -40,6 +42,7 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.konai.appmeter.driver_am.BuildConfig;
@@ -55,6 +58,7 @@ import com.konai.appmeter.driver_am.util.ButtonFitText;
 import com.konai.appmeter.driver_am.util.FontFitTextView;
 import com.konai.appmeter.driver_am.util.MyTouchListener;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -62,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
     private PermissionSupoort mPermission;
 
-    private AMBluetoothManager mBluetoothLE;
+    private AMBluetoothManager mBluetoothLE = null;
     private BluetoothManager mBluetoothManager = null;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice bluetoothDevice = null;
@@ -82,42 +86,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
-    String ble = "connectBle";
-
-    //BluetoothGattCallback
-
-    private BluetoothGatt mbluetoothGatt = null;
-    public static BluetoothGattService m_gattService = null;
-    private static BluetoothGattCharacteristic m_gattCharTrans = null;
-    private static BluetoothGattCharacteristic m_gattCharConfig = null;
-    private static BluetoothGattDescriptor m_descriptor = null;
-
-    public final static String ACTION_GATT_CONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
-    public final static String ACTION_GATT_DISCONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
-    public final static String ACTION_GATT_SERVICES_DISCOVERED =
-            "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
-    public final static String ACTION_DATA_AVAILABLE =
-            "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
-    public final static String EXTRA_DATA =
-            "com.example.bluetooth.le.EXTRA_DATA";
-
-    public final static UUID UUID_HEART_RATE_MEASUREMENT =
-            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
-
-    public static class SampleGattAttributes {
-        private static HashMap<String, String> attributes = new HashMap();
-        public static String HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb";
-        static {
-            // Sample Services.
-            attributes.put("0000180d-0000-1000-8000-00805f9b34fb", "Heart Rate Service");
-            // Sample Characteristics.
-            attributes.put(HEART_RATE_MEASUREMENT, "Heart Rate Measurement");
-        }
-    }
-
-
 //    public static LocService m_Service;
     public static AwindowService windowService = null;
 
@@ -130,25 +98,115 @@ public class MainActivity extends AppCompatActivity {
 
     private MyTouchListener mTouchListener;
 
-    private View viewframe1, viewframe2, viewframe3;
-    private FrameLayout frame1, frame2, frame3;
-    private LinearLayout main_layout, menu_layout;
+    private View viewframe1, viewframe2, viewframe3, viewframe4, viewframe5;
+    private FrameLayout frame1, frame2, frame3, frame4, frame5;
+    private LinearLayout main_layout, menu_layout, main_btn_layout, add_fare_frame_layout, number_pad_frame_layout;
     private ButtonFitText btn_menu, btn_complex, btn_login, btn_arrive, btn_add_pay;
-    private ButtonFitText btn_empty, btn_drive, btn_reserve, btn_pay;
+    private ButtonFitText btn_empty, btn_drive, btn_call, btn_pay;
     private ImageView iv_ble, iv_wifi;
     private FontFitTextView tv_night_status, tv_add_pay, tv_rescall_pay, tv_total_pay;
     private ButtonFitText btn_main_status;
     private Boolean menuClicked = true;
 
-    InputFareDialog inputFareDialog;
-    private NotificationChannel nfChannel;
-    private NotificationManager nfManager;
-    private NotificationChannel nfGpsChannel;
+    private RadioButton btn_close, btn_ok;
 
-    private AMPacket topkt = null;
-    private AMPacket outpkt = null;
-    private static byte[] packetdata;
-    public byte[] outpacket = null;
+    Thread testThread = new Thread();
+
+    private AwindowService.mainCallBack mCallback = new AwindowService.mainCallBack() {
+        @Override
+        public void serviceBleStatus(boolean bleStatus) {
+            Log.d("mCallback_bleStatus", bleStatus+"");
+
+            //블루투스 상태값 변경
+            display_bleStatus(bleStatus);
+        }
+
+        @Override
+        public void serviceMeterState(int btnType, int mFare) {
+            Log.d("mCallback_meterState", btnType+", "+mFare);
+
+            long value = Long.parseLong(mFare+"");
+            DecimalFormat format = new DecimalFormat("###,###");
+
+            //상태값 요금 변경
+            display_Runstate(format.format(value));
+
+            if (btnType == AMBlestruct.MeterState.PAY) {
+                btn_pay.performClick();
+                btn_main_status.setText("지불");
+                btn_main_status.setTextColor(getResources().getColor(R.color.black));
+                btn_main_status.setBackgroundResource(R.drawable.orange_gradi_btn);
+
+            }else if (btnType == AMBlestruct.MeterState.EMPTY) {
+                btn_empty.performClick();
+                btn_main_status.setText("빈차");
+                btn_main_status.setTextColor(getResources().getColor(R.color.white));
+                btn_main_status.setBackgroundResource(R.drawable.grey_gradi_btn);
+
+            }else if (btnType == AMBlestruct.MeterState.DRIVE) {
+                btn_drive.performClick();
+                btn_main_status.setText("주행");
+                btn_main_status.setTextColor(getResources().getColor(R.color.black));
+                btn_main_status.setBackgroundResource(R.drawable.yellow_gradi_btn);
+
+            }else if (btnType == AMBlestruct.MeterState.CALL) {
+                btn_call.performClick();
+                btn_main_status.setText("호출");
+                btn_main_status.setTextColor(getResources().getColor(R.color.black));
+                btn_main_status.setBackgroundResource(R.drawable.green_gradi_btn);
+            }
+        }
+    };
+
+
+    public void display_bleStatus(boolean ble) {
+        if (ble == true) {
+            iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
+        }else {
+            iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
+        }
+    }
+    public void display_Runstate(String mFare) {
+        tv_total_pay.setText(mFare);
+    }
+
+    Handler displayHandler = new Handler() {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+
+            Log.d("displayHandler", msg+"");
+
+//            super.handleMessage(msg);
+
+            switch (msg.what) {
+                case 12:
+                    switch (AMBlestruct.AMReceiveFare.M_STATE) {
+                        case "1":
+                            Log.d("displayHandler_1", "1");
+                            break;
+                        case "2":
+                            Log.d("displayHandler_2", "2");
+                            break;
+                    }
+                    break;
+            }
+        }
+    };
+
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder iBinder) {
+            AwindowService.ServiceBinder binder = (AwindowService.ServiceBinder) iBinder;
+            windowService = binder.getService();
+            windowService.registerCallback(mCallback);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
 
 
     @Override
@@ -156,28 +214,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.d("main_", "onCreate");
+
         mContext = this;
 
         //서비스가 백그라운드에서 돌아가고 있는지 확인
 //        m_Service.isLocServiceRunning(mContext);
 
+
         setting.APP_VERSION = Double.parseDouble(BuildConfig.VERSION_NAME);
 
-
-        //me: 권한설정
-
-        //위치권한
-        locationPermission();
-
-        //블루투스 스캔 권한
-        bleScanPermission();
-
-        //블루투스 연결 권한
-        bleConnPermission();
+        if(windowService == null) {
+            bindService(new Intent(getApplicationContext(),
+                    AwindowService.class), mServiceConnection, Context.BIND_AUTO_CREATE); //20180117
+        }
 
 
-        //앱위에그리기 권한
-        oerlayPermission();
+
+
+
+
+
 
         //me:[저전력 블루투스 연결 설정]
 
@@ -199,39 +256,49 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        //me: 권한설정
+
+        //앱위에그리기 권한
+        oerlayPermission();
+
+        //위치권한
+        locationPermission();
+
+        //블루투스 연결 권한
+//        bleConnPermission();
+//
+//        //블루투스 스캔 권한
+//        bleScanPermission();
+
+
+
+
 
         viewFrameVariablesConfiguration();
 
 
-        //status ---- 블루투스 연결여부 아이콘 설정
-//        if (setting.BLE_STATE == true) {
-//            Log.d("ble_state_true", setting.BLE_STATE+"");
-//            iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
-////            Toast.makeText(mContext, "빈차등과 연결 되었습니다.", Toast.LENGTH_SHORT).show();
-//        }else {
-//            Log.d("ble_state_false", setting.BLE_STATE+"");
-//            iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
-//            Toast.makeText(mContext, "빈차등 연결이 끊어졌습니다", Toast.LENGTH_SHORT).show();
-//        }
+        mBluetoothLE = new AMBluetoothManager(mContext);
 
 
     }//onCreate
 
-
-
-
-    //권한요청 결과
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    protected void onResume() {
+        super.onResume();
 
-        Log.d("mPermission", requestCode + ": \n" + permissions + ": \n" + grantResults);
+        Log.d("main_", "onResume");
+        Log.d("main_", setting.BLE_STATE+":  "+setting.BLUETOOTH_DEVICE_ADDRESS);
 
-        //리턴이 false 로 들어온다면 사용자가 권한 허용거부
-        if (!mPermission.permissionResult(requestCode, permissions, grantResults)) {
-            //다시 permission 요청
-            mPermission.requestPermission();
+        if (setting.BLUETOOTH_DEVICE_ADDRESS.equals("")) {
+            Log.d("main_","device not found");
         }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+
+        //블루투스 연결 권한
+        bleConnPermission();
+
+        //블루투스 스캔 권한
+        bleScanPermission();
     }
 
     //위치권한데 대한 동적퍼미션 작업 (Location permission)
@@ -241,14 +308,31 @@ public class MainActivity extends AppCompatActivity {
             if (checkSelfPermission(permission) == PackageManager.PERMISSION_DENIED) {
                 requestPermissions(new String[]{permission}, ACCESS_FINE_LOCATION_DENIED);
             }
+//            bleScanPermission();
         }
+
     }
 
     public void bleScanPermission() {
+
+        Log.d("bleScanPermission","1");
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+
+            Log.d("bleScanPermission","2");
+
             if (this.checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+
+                Log.d("bleScanPermission","3");
+
                 requestPermissions(new String[]{Manifest.permission.BLUETOOTH_SCAN}, BLUETOOTH_SCAN_DENIED);
+            }else {
+
+                Log.d("bleScanPermission","4");
+
+                Toast.makeText(MainActivity.this, "scan permission", Toast.LENGTH_SHORT).show();
             }
+//            bleConnPermission();
         }
     }
 
@@ -258,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
             if (checkSelfPermission(ble_conn_permission) == PackageManager.PERMISSION_DENIED) {
                 requestPermissions(new String[]{ble_conn_permission}, BLUETOOTH_CONNECT_DENIED);
             }
+//            oerlayPermission();
         }
     }
 
@@ -273,6 +358,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case BLUETOOTH_SCAN_DENIED:
+                Log.d("bleScanPermission","4- scan denied");
                 Toast.makeText(mContext, "!!!!!!", Toast.LENGTH_SHORT).show();
                 break;
 
@@ -332,6 +418,7 @@ public class MainActivity extends AppCompatActivity {
             startWindowService();
     }
 
+
     //me: 메인화면에서는 보이지말고 앱 밖에서만 보이도록..
     void startWindowService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -341,107 +428,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-    public void startService() {
-
-        if (windowService != null) {
-            return;
-        }
-        if (setting.gUseBLE) {
-            if (!mBluetoothAdapter.isEnabled()) {  //null object
-                return;
-            }
-        }
-
-        Intent service = new Intent(getApplicationContext(), AwindowService.class);
-        service.setPackage("com.konai.appmeter.driver_am");
-
-        try {
-            unbindService(mServiceConnection);
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-        }
-
-//        windowService = null;
-
-        if (Build.VERSION.SDK_INT >= 26) {
-            getApplicationContext().startForegroundService(service);
-        } else {
-            startService(service);
-        }
-
-        try {
-
-            Thread.sleep(1000);
-
-        } catch (InterruptedException e) {
-
-            e.printStackTrace();
-        }
-
-        if (windowService == null) {
-            bindService(new Intent(getApplicationContext(),
-                    AwindowService.class), mServiceConnection, Context.BIND_AUTO_CREATE); //20180117
-        }
-
-    }
-
-/**
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-
-            AwindowService.ServiceBinder binder = (LocService.ServiceBinder) service;
-//            m_Service = binder.getService();
-//            m_Service.registerCallback(mCallback);
-
-            Log.d("mServiceConnection", m_Service + "");
-
-            if (m_Service == null) {
-                Log.d("mServiceConnection", "null");
-            } else {
-                Log.d("mServiceConnection", "not null");
-            }
-
-            setting.m_Service = m_Service;
-
-            windowService.lbs_initx = lbs_x;
-            windowService.lbs_inity = lbs_y;
-            windowService.lbs_initw = lbs_w;
-            windowService.lbs_inith = lbs_h;
-
-            if (setting.bOverlaymode) {
-                windowService._overlaycarstate();
-            }
-
-//            afterServiceConnect();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            windowService = null;
-            setting.windowService = null;
-        }
-    };
-    **/
-
 
     private void viewFrameVariablesConfiguration() {
 
         viewframe1 = null;
         viewframe2 = null;
         viewframe3 = null;
+        viewframe4 = null;
+        viewframe5 = null;
         frame1 = (FrameLayout) findViewById(R.id.frame1);
         frame2 = (FrameLayout) findViewById(R.id.frame2);
         frame3 = (FrameLayout) findViewById(R.id.frame3);
+        frame4 = (FrameLayout) findViewById(R.id.frame4);
+        frame5 = (FrameLayout) findViewById(R.id.frame5);
 
         LayoutInflater inflater = null;
         inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         viewframe1 = inflater.inflate(R.layout.mainframe1, frame1,true);  //메인화면
         viewframe2 = inflater.inflate(R.layout.mainbuttonframe2, frame2, true); //메인하단버튼
         viewframe3 = inflater.inflate(R.layout.mainbuttonframe3, frame3, true); //메인상단버튼
+
+        viewframe4 = inflater.inflate(R.layout.mainframe1, frame4);   //추가금액 화면
+        viewframe5 = inflater.inflate(R.layout.numberpadframe5, frame5, true);  //넘버패드버튼
 
         /*메인화면버튼 frame1*/
         iv_ble = (ImageView) viewframe1.findViewById(R.id.nbtn_connectble);
@@ -450,14 +458,15 @@ public class MainActivity extends AppCompatActivity {
         tv_add_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_addpayment);
         tv_rescall_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_rescallpay);
         tv_total_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_totalpay);
+        main_layout = viewframe1.findViewById(R.id.mainframe1_layout);
+        menu_layout = viewframe1.findViewById(R.id.menu_frame_layout);
 
         /*메인버튼 frame2*/
         btn_empty = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_emptycar);
         btn_drive = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_drivestart);
-        btn_reserve = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_reserve);
+        btn_call = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_reserve);
         btn_pay = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_driveend);
-        main_layout = viewframe1.findViewById(R.id.mainframe1_layout);
-        menu_layout = viewframe1.findViewById(R.id.menu_frame_layout);
+        main_btn_layout = (LinearLayout) viewframe2.findViewById(R.id.main_btn_layout);
 
         /*메인버튼 frame3*/
         btn_menu = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_menu);
@@ -465,6 +474,15 @@ public class MainActivity extends AppCompatActivity {
         btn_login = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_login);
         btn_arrive = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_arrived);
         btn_add_pay = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_addpayment);
+
+        /*추가요금 frame4 & frame5*/
+        number_pad_frame_layout = (LinearLayout) findViewById(R.id.number_pad_frame_layout);
+        add_fare_frame_layout = viewframe4.findViewById(R.id.add_fare_frame_layout);
+        btn_close = (RadioButton) viewframe5.findViewById(R.id.btn_close);
+        btn_ok = (RadioButton) viewframe5.findViewById(R.id.btn_ok);
+
+        btn_close.setOnClickListener(numberPadClickListener);
+        btn_ok.setOnClickListener(numberPadClickListener);
 
         iv_ble.setOnClickListener(mainBtnClickListener);
         btn_main_status.setOnClickListener(mainBtnClickListener);
@@ -477,11 +495,11 @@ public class MainActivity extends AppCompatActivity {
         btn_empty.setOnTouchListener(mTouchListener);
         btn_empty.setOnTouchListener(mTouchListener);
         btn_drive.setOnTouchListener(mTouchListener);
-        btn_reserve.setOnTouchListener(mTouchListener);
+        btn_call.setOnTouchListener(mTouchListener);
         btn_pay.setOnTouchListener(mTouchListener);
         btn_empty.setOnClickListener(mainBtnClickListener);
         btn_drive.setOnClickListener(mainBtnClickListener);
-        btn_reserve.setOnClickListener(mainBtnClickListener);
+        btn_call.setOnClickListener(mainBtnClickListener);
         btn_pay.setOnClickListener(mainBtnClickListener);
 
         btn_menu.setOnTouchListener(mTouchListener);
@@ -508,6 +526,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //넘버패드 클릭리스너
+    private View.OnClickListener numberPadClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()) {
+                case R.id.btn_ok:
+                    break;
+                case R.id.btn_close:
+                    main_layout.setVisibility(View.VISIBLE);
+                    menu_layout.setVisibility(View.GONE);
+                    number_pad_frame_layout.setVisibility(View.GONE);
+                    add_fare_frame_layout.setVisibility(View.GONE);
+                    break;
+            }
+        }
+    };
+
 
     //메인버튼 클릭리스너
     private View.OnClickListener mainBtnClickListener = new View.OnClickListener() {
@@ -533,36 +568,52 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.nbtn_emptycar:  //빈차버튼
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
-                    setEmptyStatus(btn_main_status, btn_empty, btn_drive, btn_reserve, btn_pay);
+                    add_fare_frame_layout.setVisibility(View.GONE);
+                    setEmptyStatus( btn_empty, btn_drive, btn_call, btn_pay);
 //                    tv_night_status.setVisibility(View.GONE);
                     btn_menu.setClickable(true);
                     btn_menu.setBackgroundResource(R.drawable.grey_gradi_btn);
+                    //me: 버튼값 빈차등으로 보내기
+                    windowService.update_BLEmeterstate("05");
                     break;
                 case R.id.nbtn_drivestart:  //주행버튼
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
-                    setDriveStatus(btn_main_status, btn_empty, btn_drive, btn_reserve, btn_pay);
+                    add_fare_frame_layout.setVisibility(View.GONE);
+                    setDriveStatus(btn_empty, btn_drive, btn_call, btn_pay);
                     //주행버튼 클릭 -> 메뉴버튼 클릭 못하게
                     btn_menu.setClickable(false);
-                    Toast.makeText(mContext, R.string.drive_toast, Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(mContext, R.string.drive_toast, Toast.LENGTH_SHORT).show();
+                    //me: 버튼값 빈차등으로 보내기
+                    windowService.update_BLEmeterstate("20");
                     break;
+
                 case R.id.nbtn_reserve:    //호출버튼
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
-                    setReserveStatus(btn_main_status, btn_empty, btn_drive, btn_reserve, btn_pay);
+                    add_fare_frame_layout.setVisibility(View.GONE);
+                    setReserveStatus(btn_empty, btn_drive, btn_call, btn_pay);
+                    //me: 버튼값 업데이트 -> 빈차등으로 보내기
+                    windowService.update_BLEmeterstate("33");
+//                    tv_rescall_pay.setVisibility(View.VISIBLE); //빈차등으로 부터 호출값 받으면 보이기
                     break;
+
                 case R.id.nbtn_driveend:  //지불버튼
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
-                    setPayStatus(btn_main_status, btn_empty, btn_drive, btn_reserve, btn_pay);
+                    setPayStatus( btn_empty, btn_drive, btn_call, btn_pay);
+                    //me: 버튼값 빈차등으로 보내기
+                    windowService.update_BLEmeterstate("01");
                     break;
+
                 /*frame3 메인상단버튼*/
                 case R.id.nbtn_menu:  //메뉴 btn
                     //빈차등메뉴
 //                    setupBluetooth(2);
                     main_layout.setVisibility(View.GONE);
                     menu_layout.setVisibility(View.VISIBLE);
-                    setEmptyStatus(btn_main_status, btn_empty, btn_drive, btn_reserve, btn_pay);
+                    add_fare_frame_layout.setVisibility(View.GONE);
+                    setEmptyStatus(btn_empty, btn_drive, btn_call, btn_pay);
                     break;
                 case R.id.nbtn_complex:  //복합 btn
                     break;
@@ -570,25 +621,12 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.nbtn_arrived:  //도착 btn
                     break;
-                case R.id.nbtn_addpayment:  //추가 btn
-                    inputFareDialog = new InputFareDialog(mContext, setting.gOrient
-                            , new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) { //ok btn
-                            String value= inputFareDialog.returnMenualValue();
-//                            Log.d("getMenualPay_1", value);
-                            inputFareDialog.dismiss();
-                        }
-                    }, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) { //cancel btn
-                            inputFareDialog.dismiss();
-                        }
-                    });
-                    inputFareDialog.setCancelable(true);
-                    inputFareDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                    inputFareDialog.show();
-                    setDisplayMetrics(mContext, inputFareDialog);
+                case R.id.nbtn_addpayment:  //추가금액 btn
+                    //show frame 4
+                    main_layout.setVisibility(View.GONE);
+                    menu_layout.setVisibility(View.GONE);
+                    number_pad_frame_layout.setVisibility(View.VISIBLE);
+                    add_fare_frame_layout.setVisibility(View.VISIBLE);
                     break;
 
 
@@ -598,10 +636,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
-    private void setEmptyStatus(ButtonFitText btnMainStatus, ButtonFitText btnEmpty, ButtonFitText btnDrive, ButtonFitText btnReserve, ButtonFitText btnPay) {
-        btnMainStatus.setText("빈차");
-        btnMainStatus.setTextColor(getResources().getColor(R.color.white));
-        btnMainStatus.setBackgroundResource(R.drawable.grey_gradi_btn);
+    private void setEmptyStatus( ButtonFitText btnEmpty, ButtonFitText btnDrive, ButtonFitText btnReserve, ButtonFitText btnPay) {
         btnEmpty.setText("빈차");
         btnEmpty.setTextColor(getResources().getColor(R.color.white));
         btnDrive.setTextColor(getResources().getColor(R.color.white));
@@ -613,10 +648,7 @@ public class MainActivity extends AppCompatActivity {
         btnPay.setBackgroundResource(R.drawable.orange_gradi_btn);
     }
 
-    private void setDriveStatus(ButtonFitText btnMainStatus, ButtonFitText btnEmpty, ButtonFitText btnDrive, ButtonFitText btnReserve, ButtonFitText btnPay) {
-        btnMainStatus.setText("주행");
-        btnMainStatus.setTextColor(getResources().getColor(R.color.black));
-        btnMainStatus.setBackgroundResource(R.drawable.yellow_gradi_btn);
+    private void setDriveStatus( ButtonFitText btnEmpty, ButtonFitText btnDrive, ButtonFitText btnReserve, ButtonFitText btnPay) {
         btnDrive.setText("주행");
         btnEmpty.setTextColor(getResources().getColor(R.color.white));
         btnDrive.setTextColor(getResources().getColor(R.color.grey_light));
@@ -628,10 +660,7 @@ public class MainActivity extends AppCompatActivity {
         btnPay.setBackgroundResource(R.drawable.orange_gradi_btn);
     }
 
-    private void setReserveStatus(ButtonFitText btnMainStatus, ButtonFitText btnEmpty, ButtonFitText btnDrive, ButtonFitText btnReserve, ButtonFitText btnPay) {
-        btnMainStatus.setText("호출");
-        btnMainStatus.setTextColor(getResources().getColor(R.color.black));
-        btnMainStatus.setBackgroundResource(R.drawable.green_gradi_btn);
+    private void setReserveStatus( ButtonFitText btnEmpty, ButtonFitText btnDrive, ButtonFitText btnReserve, ButtonFitText btnPay) {
         btnReserve.setText("호출");
         btnEmpty.setTextColor(getResources().getColor(R.color.white));
         btnDrive.setTextColor(getResources().getColor(R.color.white));
@@ -643,10 +672,7 @@ public class MainActivity extends AppCompatActivity {
         btnPay.setBackgroundResource(R.drawable.orange_gradi_btn);
     }
 
-    private void setPayStatus(ButtonFitText btnMainStatus, ButtonFitText btnEmpty, ButtonFitText btnDrive, ButtonFitText btnReserve, ButtonFitText btnPay) {
-        btnMainStatus.setText("지불");
-        btnMainStatus.setTextColor(getResources().getColor(R.color.black));
-        btnMainStatus.setBackgroundResource(R.drawable.orange_gradi_btn);
+    private void setPayStatus(ButtonFitText btnEmpty, ButtonFitText btnDrive, ButtonFitText btnReserve, ButtonFitText btnPay) {
         btnPay.setText("지불");
         btnEmpty.setTextColor(getResources().getColor(R.color.white));
         btnDrive.setTextColor(getResources().getColor(R.color.white));

@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.util.ByteArrayBuffer;
@@ -121,31 +122,6 @@ public class AMBluetoothManager {
         }
     }
 
-    public void scanLeDevice(final boolean enable) {
-        if (enable) {
-            //stop scanning after a pre-defined scan period
-            mHandler = new Handler();
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-
-                    Log.e("scan_run", "stopScanBLE");
-
-                    stopScanBLE();
-
-                }
-            }, setting.SCAN_PERIOD);
-
-            Log.d("scan_device", "start scan ble");
-
-            startScanBLE();
-
-        } else {
-
-            stopScanBLE();
-        }
-    }//scanLeDevice
-
 
     private void stopScanBLE() {
 
@@ -174,28 +150,6 @@ public class AMBluetoothManager {
             mBluetoothAdapter.stopLeScan(mLeScanCallBack);
         }
 
-    }
-
-    private void startScanBLE() {
-
-        setting.BLESCANNING_MODE = true;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Log.d("scan_ble_", "LOLLIPOP");
-            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
-            }
-            mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
-        } else {
-            mBluetoothAdapter.startLeScan(mLeScanCallBack);
-        }
     }
 
 
@@ -357,7 +311,7 @@ public class AMBluetoothManager {
         mBluetoothAddress = setting.BLUETOOTH_DEVICE_ADDRESS;
         mConnectionState = STATE_CONNECTING;
 
-        makepacketsend("15");
+//        makepacketsend("15");
 
         return true;
     }
@@ -378,9 +332,9 @@ public class AMBluetoothManager {
                         //블루투스 아이콘 색 변경
                         setting.BLE_STATE = true;
                         //status - 아이콘 변경
-//                        AMBleReciveData()
-//                        iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
-//                        Toast.makeText(mContext, R.string.ble_connected, Toast.LENGTH_SHORT).show();
+                        windowService.set_meterhandler.sendEmptyMessage(1);
+                        makepacketsend("15");
+
                         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                             // TODO: Consider calling
                             //    ActivityCompat#requestPermissions
@@ -404,8 +358,7 @@ public class AMBluetoothManager {
                         //블루투스 아이콘 색 변경
                         setting.BLE_STATE = false;
                         //status - 아이콘 변경
-//                        iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
-//                        Toast.makeText(mContext, R.string.ble_disconnected, Toast.LENGTH_SHORT).show();
+                        windowService.set_meterhandler.sendEmptyMessage(1);
 
                         connectBLE();
                     }
@@ -540,32 +493,39 @@ public class AMBluetoothManager {
     }
 
 
+    //me: 버튼값(빈차/주행/지불/호출) 업데이트 -> 빈차등으로 보내기
+    public void update_AMmeterstate(String sstate)
+    {
+        AMBlestruct.mSState = sstate;
+        Log.d("버튼값", sstate);
+        AMBlestruct.setSStateupdate(true);
+
+        makepacketsend("15");
+    }
+
+
     //앱 -> 빈차등 상태값 요청
     //thread 없이 바로연결
-    synchronized public boolean makepacketsend(String requestCode) {
+    synchronized public boolean makepacketsend(@NonNull String requestCode) {
 
         byte[] mData = null;
         topkt.SetPoint(0);
 
         topkt.Setbyte(packetdata, (byte) 0x02);  //STX
 
-        Log.d("send_requestconde", requestCode);
+        Log.d("send_requestconde", requestCode+", "+AMBlestruct.mSState);
 
         switch (requestCode) {
 
             case AMBlestruct.curRequestCode:
 
-                topkt.SetString(packetdata, "15");
+                topkt.SetString(packetdata, "15");  //요청코드
+                topkt.SetString(packetdata, getCurDateString()); //날짜시간
+                topkt.SetString(packetdata, AMBlestruct.mSState);  //상태요청
 
                 Log.d("send_time", getCurDateString());
 
-                topkt.SetString(packetdata, getCurDateString());
-
-                topkt.SetString(packetdata, "05");
-//                topkt.SetString(packetdata, AMBlestruct.mSState);
-
-
-                Log.d("send_빈차등차량상태전송", AMBlestruct.mSState);
+//                Log.d("send_빈차등차량상태전송", mSState);
 
                 break;
         }
@@ -613,6 +573,11 @@ public class AMBluetoothManager {
         return true;
     }
 
+    //Outdata Que
+    public class OutDataQue {
+        byte[] outdata;
+    }
+
 
     private void AMBleReciveData(final String action, final BluetoothGattCharacteristic characteristic) {
 
@@ -626,9 +591,15 @@ public class AMBluetoothManager {
             Log.d("receive_outdata", characteristic.getValue()+"");
 
             byte[] outdata = characteristic.getValue();
-//            packetData[1024]
 
-//            Log.d("receive_outdata", outdata.toString());
+//            Log.d("outdata_before_que", outdata+"");
+////
+//            OutDataQue que = new OutDataQue();
+//
+//            que.outdata = outdata;
+//
+//            Log.d("outdata_que", que.outdata+"");
+
 
             //me:
             //  outdata를 Q에 먼저 쌓아넣고 Q에 데이터가 있는지 없는지를 Thread 안에서 확인하고
@@ -653,6 +624,8 @@ public class AMBluetoothManager {
                                 outputData[outDataIndex++] = byteChar;
                                 Log.d("outputData", outDataIndex+"");
 
+                                //me: 바로 파싱..
+                                // parsingend_AMBle(outdata, outdata.length);
                                 parsingend_AMBle(outputData, outDataIndex);  //형변환 파싱
                                 break;
 
@@ -662,8 +635,6 @@ public class AMBluetoothManager {
                                     break;
                         }
 
-                        //me: 바로 파싱..
-                        // parsingend_AMBle(outdata, outdata.length);
 //                        stringBuilder.append(String.format("%02X ", byteChar));
 //                        Log.d("receive_builder", outdata.length+": "+stringBuilder.toString());
                     }
@@ -683,7 +654,7 @@ public class AMBluetoothManager {
 
 
 
-
+    //필요없음
     public void checkgetData_AMBle(byte[] bytetmp, int bytesRead) {
 
         byte[] outPack;
@@ -761,7 +732,7 @@ public class AMBluetoothManager {
 
         switch (code) {  //택시요금수신, 미터기모드
 
-            case AMBlestruct.curReponseCode:
+            case "19":
 //                outpkt.SetPoint(17);
 //                AMBlestruct.curReponseCode = outpkt.GetString(outdata, 2);
                 AMBlestruct.AMReceiveFare.M_RECEIVE_TIME = outpkt.GetString(outdata, 14);  //날짜시간
@@ -781,6 +752,11 @@ public class AMBluetoothManager {
                 AMBlestruct.AMReceiveFare.M_END_Y = outpkt.GetString(outdata, 14);  //하차좌표-Y
                 AMBlestruct.AMReceiveFare.M_START_DISTANCE = outpkt.GetString(outdata, 14);  //승차거리
                 AMBlestruct.AMReceiveFare.M_EMPTY_DISTANCE = outpkt.GetString(outdata, 14);  //빈차거리
+
+                windowService.set_meterhandler.sendEmptyMessage(12);
+
+                Log.d("meterHandler" , "endEmptyMessage_12");
+                Log.d("meterHandler_btn", AMBlestruct.AMReceiveFare.M_STATE);
 
                 break;
         }

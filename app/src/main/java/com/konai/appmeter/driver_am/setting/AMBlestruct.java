@@ -22,17 +22,19 @@ public class AMBlestruct {
     }
 
     //버튼값 B = button
+
     public static final String B_PAY = "01";        //지불
     public static final String B_EMPTY = "05";      //빈차
     public static final String B_DRIVE = "20";      //주행
     public static final String B_SUBURBAN = "31";   //시외
     public static final String B_COMPLEX = "32";    //복합
-    public static final String B_RESERVE = "33";    //호출
+    public static final String B_CALL = "33";    //호출
     public static final String B_RECEIPT = "34";    //영수
     public static final String B_CLOSE = "50";      //후무
     public static final String B_CANCEL_PAY = "51"; //결제취소
 
-    public static String mSState = "";
+    public static String mSState = "00";
+    public static boolean mbSStateupdated = false;
 
 
     //me: 빈차등 -> 앱
@@ -61,11 +63,17 @@ public class AMBlestruct {
 
 
     public static class  MeterState {
-
-        public static final int PAY = 1;
-        public static final int EMPTY = 2;
-        public static final int DRIVE = 3;
-        public static final int EXTRA = 4;
+        //빈차등으로부터 수신받을 때 버튼값
+        public static final int PAY = 1;  //지불
+        public static final int EMPTY = 2; //빈차
+        public static final int DRIVE = 3; //주행
+        public static final int CALL = 4;  //할증
     }
 
+    synchronized public static void setSStateupdate(boolean bupdate)
+    {
+
+        mbSStateupdated = bupdate;
+
+    }
 }

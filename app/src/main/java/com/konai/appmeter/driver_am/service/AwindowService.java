@@ -16,9 +16,11 @@ import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -27,15 +29,21 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+
 import com.konai.appmeter.driver_am.R;
+import com.konai.appmeter.driver_am.setting.AMBlestruct;
 import com.konai.appmeter.driver_am.setting.setting;
 import com.konai.appmeter.driver_am.socket.AMBluetoothManager;
 import com.konai.appmeter.driver_am.util.FontFitTextView;
 import com.konai.appmeter.driver_am.view.MainActivity;
 
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class AwindowService extends Service {
 
@@ -52,19 +60,44 @@ public class AwindowService extends Service {
     private static Thread mainThread = null;
     private static Thread checkstateThread = null;
 
-    public int lbs_initx = -1;
-    public int lbs_inity = -1;
-    public int lbs_initw = 300;
-    public int lbs_inith = 138;
+    private final IBinder m_ServiceBinder = new ServiceBinder();
+    private int mfare = 0;
+
+//    BlockingQueue<CalQueue> mCalblockQ = new ArrayBlockingQueue<CalQueue>(10);
+
+
+    public class ServiceBinder extends Binder {
+
+        public AwindowService getService() {
+            return AwindowService.this;
+        }
+    }
+
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return m_ServiceBinder;
     }
 
     public boolean onUnbind(Intent intent) {
 //        close();
         return super.onUnbind(intent);
+    }
+
+    // Activity 에서 정의해 해당 서비스와 통신 할 함수를 추상함수로 정의
+    public interface mainCallBack {
+        void serviceBleStatus(boolean bleStatus);
+
+        void serviceMeterState(int btnType, int mFare);
+    }
+
+    // Activity 와 통신할 callback 객체
+    public mainCallBack mCallback = null;
+
+    // callback 객체 등록함수
+    public void registerCallback(mainCallBack callBack) {
+        Log.d("mainCallBack-> ", "registerCallback");
+        mCallback = callBack;
     }
 
 
@@ -73,6 +106,7 @@ public class AwindowService extends Service {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mBluetoothLE = new AMBluetoothManager(this, AwindowService.this);
         ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+//        ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN);
 //        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
 
 
@@ -84,8 +118,12 @@ public class AwindowService extends Service {
         }
 
 
+        mainThread = new Thread(new MainThread());
+        mainThread.start();
+
+
         if (setting.gUseBLE == true) {
-            Log.d("start_scan", "gBLE == true" );
+            Log.d("start_scan", "gBLE == true");
             setBleScan();
         }
 
@@ -110,8 +148,8 @@ public class AwindowService extends Service {
             stopForeground(true); // Foreground service 종료
         }
 
-        if(windowManager != null) {
-            if(mView != null) {
+        if (windowManager != null) {
+            if (mView != null) {
                 windowManager.removeView(mView); // View 초기화
                 mView = null;
             }
@@ -134,7 +172,7 @@ public class AwindowService extends Service {
             if (channel == null) {
                 channel = new NotificationChannel(
                         CHANNEL_ID,
-                        CHANNEL_ID+" "+TITLE,
+                        CHANNEL_ID + " " + TITLE,
                         NotificationManager.IMPORTANCE_LOW);
                 channel.setSound(null, null);
                 notificationManager.createNotificationChannel(channel);
@@ -143,7 +181,7 @@ public class AwindowService extends Service {
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID).build();
             startForeground(1, notification);
 
-        }else {
+        } else {
 
 
         }
@@ -160,15 +198,15 @@ public class AwindowService extends Service {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O?
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
                         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
                 // Android O 이상인 경우 TYPE_APPLICATION_OVERLAY 로 설정
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        |WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT);
 
 
-        params.gravity = Gravity.LEFT|Gravity.CENTER_VERTICAL;
+        params.gravity = Gravity.LEFT | Gravity.CENTER_VERTICAL;
         // 위치 지정
 
         mView = inflate.inflate(R.layout.layout_show_mainactivity, null);
@@ -177,11 +215,11 @@ public class AwindowService extends Service {
         // Android O 이상의 버전에서는 터치리스너가 동작하지 않는다. ( TYPE_APPLICATION_OVERLAY 터치 미지원)
 
 
-        final ImageView btn_img =  (ImageView) mView.findViewById(R.id.btn_img);
+        final ImageView btn_img = (ImageView) mView.findViewById(R.id.btn_img);
         btn_img.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("test","onClick ");
+                Log.d("test", "onClick ");
                 // do something!
                 //다시 메인 액티비티 열기
                 show_mainActivity();
@@ -192,15 +230,15 @@ public class AwindowService extends Service {
         btn_img.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                switch (motionEvent.getAction()){
+                switch (motionEvent.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        Log.d("test","touch DOWN ");
+                        Log.d("test", "touch DOWN ");
                         break;
                     case MotionEvent.ACTION_UP:
-                        Log.d("test","touch UP");
+                        Log.d("test", "touch UP");
                         break;
                     case MotionEvent.ACTION_MOVE:
-                        Log.d("test","touch move ");
+                        Log.d("test", "touch move ");
                         break;
                 }
                 return false;
@@ -209,7 +247,7 @@ public class AwindowService extends Service {
 
 //        showhideCallBtn(false);
 
-        Log.d("check_params", mView.getLayoutParams()+""); //null..
+        Log.d("check_params", mView.getLayoutParams() + ""); //null..
 
         windowManager.addView(mView, params); // 윈도우에 layout 을 추가 한다.
     }
@@ -222,17 +260,18 @@ public class AwindowService extends Service {
 
     private void showhideCallBtn(boolean show) {
 
-        if (mView == null) { return; }
+        if (mView == null) {
+            return;
+        }
 
         if (show == true) {
             mView.setVisibility(View.VISIBLE);
             windowManager.updateViewLayout(mView, mView.getLayoutParams());
-        }else {
+        } else {
             mView.setVisibility(View.INVISIBLE);
             windowManager.updateViewLayout(mView, mView.getLayoutParams());
         }
     }
-
 
 
     //status --- 블루투스 -------------
@@ -248,7 +287,7 @@ public class AwindowService extends Service {
 
             Log.d("start_scan_device", "isEnabled");  //y
 
-            Log.d("start_scan_device",setting.BLUETOOTH_DEVICE_NAME); //null
+            Log.d("start_scan_device", setting.BLUETOOTH_DEVICE_NAME); //null
 
 
 //            if (setting.BLUETOOTH_DEVICE_ADDRESS.equals("") == false && setting.BLUETOOTH_CARNO.equals(drv))
@@ -257,7 +296,7 @@ public class AwindowService extends Service {
 
                 setting.BLUETOOTH_FINDEND = true;
                 scanLeDevice(true);
-            }else {
+            } else {
                 scanLeDevice(true);
             }
 
@@ -273,7 +312,7 @@ public class AwindowService extends Service {
                 @Override
                 public void run() {
 
-                    Log.e("scan_run", "stopScanBLE");
+                    Log.e("scanDevice_run", "stopScanBLE");
 
                     stopScanBLE();
 
@@ -308,6 +347,16 @@ public class AwindowService extends Service {
 //                // for ActivityCompat#requestPermissions for more details.
 //                return;
 //            }
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
             mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
         } else {
             mBluetoothAdapter.startLeScan(mLeScanCallBack);
@@ -446,12 +495,93 @@ public class AwindowService extends Service {
 
             Log.d("connectAM","connectAM");
 
-//            mBluetoothLE.scanLeDevice(true);
-            mBluetoothLE.connectBLE();
+        mBluetoothLE.connectAM();
+//            mBluetoothLE.connectBLE();
 
         return true;
     }
 
+
+    public Handler set_meterhandler = new Handler() {
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            Log.d("meterHandler_service", msg.what+"");
+
+            if (msg.what == 1) {  //블루투스 상태값
+
+                if (setting.BLE_STATE == true) {
+                    mCallback.serviceBleStatus(true);
+                }else {
+                    mCallback.serviceBleStatus(false);
+                }
+
+            }else if (msg.what == 12) {  //빈차등 현재상태 수신값
+
+                Log.d("mfare_check", AMBlestruct.AMReceiveFare.M_START_FARE);
+
+                if (AMBlestruct.AMReceiveFare.M_START_FARE != null) {
+                    mfare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
+                }else {
+                    mfare = 0;
+                }
+
+                if (AMBlestruct.AMReceiveFare.M_STATE.equals("1")) {
+
+                    Log.d("meterHandler_mState", AMBlestruct.AMReceiveFare.M_STATE);
+
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.PAY, mfare);
+
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("2")) {
+
+                    Log.d("meterHandler_mState", AMBlestruct.AMReceiveFare.M_STATE);
+
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.EMPTY, mfare);
+
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("3")) {
+
+                    Log.d("meterHandler_mState", AMBlestruct.AMReceiveFare.M_STATE);
+
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.DRIVE, mfare);
+
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("4")) {
+
+                    Log.d("meterHandler_mState", AMBlestruct.AMReceiveFare.M_STATE);
+
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.CALL, mfare);
+
+                }
+
+            }else {
+
+            }
+
+        }
+    };
+
+    //me: 버튼값 업데이트 -> 빈차등으로 보내기
+    public boolean update_BLEmeterstate(String sstate) {
+        if (mBluetoothLE != null) {
+            mBluetoothLE.update_AMmeterstate(sstate);
+        }
+        return true;
+    }
+
+    class MainThread implements Runnable {
+
+        @Override
+        public void run() {
+
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+
+                }catch (Exception e) {
+                    Log.e("mainThreaad_error", e.toString());
+                }
+            }
+
+        }
+    }
 
 
 

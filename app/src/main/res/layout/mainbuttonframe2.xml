@@ -3,8 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:layout_margin="5dp">
+    android:orientation="vertical">
 
 
     <LinearLayout
@@ -14,23 +13,24 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
         <LinearLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:orientation="horizontal"
             android:layout_marginBottom="2dp">
+
             <com.konai.appmeter.driver_am.util.ButtonFitText
                 android:id="@+id/nbtn_emptycar"
-                android:layout_weight="1"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_marginRight="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
                 android:gravity="center|center_vertical"
                 android:padding="20dp"
-                android:background="@drawable/grey_gradi_btn"
                 android:text="빈차"
-                android:textColor="@color/white"
-                android:layout_marginRight="2dp"/>
+                android:textColor="@color/white" />
+
             <com.konai.appmeter.driver_am.util.ButtonFitText
                 android:id="@+id/nbtn_drivestart"
                 android:layout_weight="1"
