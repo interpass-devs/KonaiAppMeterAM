@@ -20,6 +20,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.codec.binary.Base64;
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.util.ByteArrayBuffer;
 import com.konai.appmeter.driver_am.service.AwindowService;
 import com.konai.appmeter.driver_am.setting.AMBlestruct;
@@ -29,6 +30,7 @@ import com.konai.appmeter.driver_am.view.MainActivity;
 import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -50,8 +52,7 @@ public class AMBluetoothManager {
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothDevice mBluetoothDevice = null;
     Set<BluetoothDevice> bluetoothDeviceSet;
-    String log = "managerClass";
-    ArrayList<String> deviceList = new ArrayList<>();
+    String log = "log_";
     private BluetoothGatt mBluetoothGatt = null;
     public static BluetoothGattService m_gattService = null;
     private static BluetoothGattCharacteristic m_gattCharTrans = null;
@@ -66,23 +67,12 @@ public class AMBluetoothManager {
 
     public final static String ACTION_GATT_CONNECTED =
             "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
-    public final static String ACTION_GATT_DISCONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
-    public final static String ACTION_GATT_SERVICES_DISCOVERED =
-            "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE =
             "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
-    public final static String EXTRA_DATA =
-            "com.example.bluetooth.le.EXTRA_DATA";
-
-    public final static UUID UUID_HEART_RATE_MEASUREMENT =
-            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
     private AMPacket topkt = null;
     private AMPacket outpkt = null;
     private static byte[] packetdata;
-    public byte[] outpacket = null;
-    int m_nQueuedSize = 0;
     ByteArrayBuffer outbuffer = null;
 
 
@@ -189,10 +179,10 @@ public class AMBluetoothManager {
         //connect to device
         //저전력 블루투스 기기와 연결하려면 GATT 서버에 연결해야함
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Log.d(ble, "connectAM at AMBluetoothManager - connectBLE_if");
+            Log.d(log, "connect to gatt server - if");
             mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
         }else {
-            Log.d(ble, "connectAM at AMBluetoothManager - connectBLE_else");
+            Log.d(log, "connect to gatt server - else");
             mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mGattCallback);
         }
 
@@ -214,7 +204,7 @@ public class AMBluetoothManager {
                     if (newState == BluetoothProfile.STATE_CONNECTED) {
                         intentAction = ACTION_GATT_CONNECTED;
                         connectionState = STATE_CONNECTED;
-                        Log.d("gatt_", "connected to gatt server");  //y
+                        Log.d(log, "connected to gatt server...");  //y
 
                         //빈차등 연결 성공
                         //블루투스 아이콘 색 변경
@@ -222,7 +212,7 @@ public class AMBluetoothManager {
                         //status - 아이콘 변경
                         windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE);
                         makepacketsend(AMBlestruct.APP_REQUEST_CODE);  //"15"
-                        Log.d("gatt_", "makepacketsend");  //y
+                        Log.d(log, "makepacketsend");  //y
 
                         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                             // TODO: Consider calling
@@ -234,14 +224,14 @@ public class AMBluetoothManager {
                             // for ActivityCompat#requestPermissions for more details.
                             return;
                         }
-                        Log.i("gatt_i", "Server discovery-> " + mBluetoothGatt.discoverServices());  //true
+                        Log.i(log, "Server discovery-> " + mBluetoothGatt.discoverServices());  //true
                         broadcastUpdate(intentAction);
                     }else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                         intentAction = ACTION_GATT_CONNECTED;
                         connectionState = STATE_DISCONNECTED;
                         broadcastUpdate(intentAction);
-                        Log.e("gatt_e", "disconnected to gatt server");
-                        Log.i("gatt_ei", "Attempting to start service discovery-> " + mBluetoothGatt.discoverServices());
+                        Log.e(log, "disconnected to gatt server");
+                        Log.i(log, "Attempting to start service discovery-> " + mBluetoothGatt.discoverServices());
 
                         //빈차등 연결 실패
                         //블루투스 아이콘 색 변경
@@ -263,7 +253,7 @@ public class AMBluetoothManager {
                         mBluetoothGatt.requestMtu(512);  //사이즈
 
                     }else {
-                        Log.w("gatt_w", "onServicesDiscovered received: "+status);
+                        Log.w(log, "onServicesDiscovered received: "+status);
                     }
                 }
 
@@ -272,7 +262,7 @@ public class AMBluetoothManager {
                     super.onMtuChanged(gatt, mtu, status);
 
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        Log.d("gatt_d", "onMtuChanged: "+mtu);  //244
+                        Log.d(log, "onMtuChanged: "+mtu);  //244
 
                         //me 되살리기
                         initGattCharaceristic();
@@ -285,7 +275,7 @@ public class AMBluetoothManager {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
                             AMBleReciveData(ACTION_DATA_AVAILABLE, characteristic);
-                            Log.d("receive_read", characteristic+"");
+                            Log.d(log, characteristic+"--");
                         }
                     }
                 }
@@ -331,7 +321,7 @@ public class AMBluetoothManager {
                             if (descriptor.getUuid().toString().equals(setting.UUID_DESCRIPTION.toString())) {
 
                                 m_descriptor = descriptor;
-                                Log.e("gatt_descriptor", descriptor.getUuid().toString());  //00002902-0000-1000-8000-00805f9b34fb
+                                Log.e(log, "descriptor:  "+descriptor.getUuid().toString());  //00002902-0000-1000-8000-00805f9b34fb
 
                             }
 
@@ -385,7 +375,7 @@ public class AMBluetoothManager {
     public void update_AMmeterstate(String sstate)
     {
         AMBlestruct.mSState = sstate;
-        Log.d("버튼값", sstate);
+        Log.d(log, "버튼값: "+sstate);
         AMBlestruct.setSStateupdate(true);
 
         makepacketsend(AMBlestruct.APP_REQUEST_CODE); //"15"
@@ -393,7 +383,7 @@ public class AMBluetoothManager {
 
     public void menu_AMmeterState(String sstate) {
         AMBlestruct.mSState = sstate;
-        Log.d("menu_request_code", sstate);
+        Log.d(log, "menu_request_code: "+sstate);
 
         makepacketsend(AMBlestruct.mSState);
     }
@@ -408,9 +398,9 @@ public class AMBluetoothManager {
 
         topkt.Setbyte(packetdata, (byte) 0x02);  //STX
 
-        Log.d("send_requestconde", requestCode+", "+AMBlestruct.mSState);
+        Log.d(log, "makepacketsend=> "+requestCode+", "+AMBlestruct.mSState);
 
-        Log.d("menu_makepacket_code", requestCode);
+        Log.d(log, "makepacketsend=> "+requestCode);
 
         switch (requestCode) {
 
@@ -418,12 +408,12 @@ public class AMBluetoothManager {
                 topkt.SetString(packetdata, AMBlestruct.APP_REQUEST_CODE);  //요청코드
                 topkt.SetString(packetdata, getCurDateString()); //날짜시간
                 topkt.SetString(packetdata, AMBlestruct.mSState);  //상태요청
-                Log.d("send_time", getCurDateString());
+                Log.d(log, "time: "+getCurDateString());
 //                Log.d("send_빈차등차량상태전송", mSState);
                 break;
 
             case AMBlestruct.APP_MENU_REQUEST_CODE:  //"41"
-                Log.d("menu_makepacket", AMBlestruct.APP_MENU_REQUEST_CODE+", "+getCurDateString()+", "+AMBlestruct.menuBtnStatus);
+                Log.d(log, "menuRequestCode 41 -> "+AMBlestruct.APP_MENU_REQUEST_CODE+", "+getCurDateString()+", "+AMBlestruct.menuBtnStatus);
                 topkt.SetString(packetdata, AMBlestruct.APP_MENU_REQUEST_CODE);  //"41"
                 topkt.SetString(packetdata, getCurDateString());
                 topkt.SetString(packetdata, AMBlestruct.menuBtnStatus); //1
@@ -437,10 +427,6 @@ public class AMBluetoothManager {
         System.arraycopy(packetdata, 0, mData, 0, topkt.point);
         write(mData);
 
-        Log.d("send_write", mData+"");
-
-        Log.d("menu_write", mData+"");
-
         return true;
     }
 
@@ -450,9 +436,6 @@ public class AMBluetoothManager {
         data[0] = 0x02;
 
         data[data.length - 1] = 0x03;
-
-        Log.d("send_data_1", data.length+"");
-        Log.d("send_data_2", data.toString());
 
 
         if(setting.gUseBLE) {
@@ -466,12 +449,12 @@ public class AMBluetoothManager {
             mBluetoothGatt.writeCharacteristic(m_gattCharTrans);
         }
 
-        Log.d("send_char", m_gattCharTrans.toString());
+        Log.d(log+"send_char", m_gattCharTrans.toString());
 
         final StringBuilder stringBuilder = new StringBuilder(data.length);
         for (byte byteChar : data)
             stringBuilder.append(String.format("%02X ", byteChar));
-        Log.d("send_builder", "++++++++send(" + data.length + ")" + stringBuilder.toString());
+        Log.d(log+"send_builder", "++++++++send(" + data.length + ")" + stringBuilder.toString());
 
         return true;
     }
@@ -491,9 +474,9 @@ public class AMBluetoothManager {
 //            StringBuilder builder = new StringBuilder();
 //            builder.append(characteristic);
 
-            Log.d("receive_outdata", characteristic.getValue()+"");
+            Log.d(log+"receive_outdata", characteristic.getValue()+"");
 
-            Log.d("menu_outdata", characteristic.getValue()+"");
+            Log.d(log+"menu_outdata", characteristic.getValue()+"");
 
             byte[] outdata = characteristic.getValue();
 
@@ -527,7 +510,7 @@ public class AMBluetoothManager {
 
                             case 0x03:
                                 outputData[outDataIndex++] = byteChar;
-                                Log.d("outputData", outDataIndex+"");
+                                Log.d(log+"outputData", outDataIndex+"");
 
                                 //me: 바로 파싱..
                                 // parsingend_AMBle(outdata, outdata.length);
@@ -539,12 +522,8 @@ public class AMBluetoothManager {
                                     outDataIndex++;
                                     break;
                         }
-
-//                        stringBuilder.append(String.format("%02X ", byteChar));
-//                        Log.d("receive_builder", outdata.length+": "+stringBuilder.toString());
                     }
 
-                    Log.d("receive_builder", outdata.length+": "+stringBuilder.toString());
                 }
 
 //            }
@@ -553,7 +532,7 @@ public class AMBluetoothManager {
 
         }catch (Exception e) {
             e.printStackTrace();
-            Log.d("receive_error", e.toString());
+            Log.d(log+"receive_error", e.toString());
         }
     }
 
@@ -663,9 +642,6 @@ public class AMBluetoothManager {
 
                 windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE);
 
-                Log.d("meterHandler" , "endEmptyMessage_12");
-                Log.d("meterHandler_btn", AMBlestruct.AMReceiveFare.M_STATE);
-
                 break;
 
             case "92":
@@ -673,10 +649,16 @@ public class AMBluetoothManager {
                 break;
 
             case AMBlestruct.METER_MENU_REQUEST_CODE:  //"42"- 미터기 메뉴 응답
-                Log.d("menu_response!!", outpkt.GetString(outdata, 2));  //2
-                String date = outpkt.GetString(outdata, 14);  //날짜시간 //14
-                Log.d("menu_date", date);
-                Log.d("menu_msg", outpkt.GetString(outdata, outDataIndex - 21)); //88-21 = n
+
+                outpkt.SetPoint(1);
+
+                Log.d(log+"menu_getCode", outpkt.GetString(outdata, 2));  //20
+
+                AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME = outpkt.GetString(outdata, 14); //날짜시간
+                AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE = outpkt.Getbyte(outdata);  //메세지 종류
+                AMBlestruct.AMReceiveMenu.MENU_MSG = outpkt.Gettextbytoken(outdata, (byte) 0x03, packetlen, -2);  //outDataIndex-21 =>  88-21 = n
+
+                windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE);
                 break;
         }
 

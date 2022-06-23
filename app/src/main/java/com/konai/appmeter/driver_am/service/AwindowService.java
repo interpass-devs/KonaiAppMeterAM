@@ -45,6 +45,7 @@ import com.konai.appmeter.driver_am.view.MainActivity;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -66,6 +67,7 @@ public class AwindowService extends Service {
     public View mView;
     private Handler mHandler;
     private String mDrvnum = "";
+    public String log="log_";
 
     private static Thread mainThread = null;
     private static Thread checkstateThread = null;
@@ -96,9 +98,10 @@ public class AwindowService extends Service {
 
     // Activity 에서 정의해 해당 서비스와 통신 할 함수를 추상함수로 정의
     public interface mainCallBack {
-        void serviceBleStatus(boolean bleStatus);
-
-        void serviceMeterState(int btnType, int mFare);
+        void serviceBleStatus(boolean bleStatus);  //블루투스 수신상태
+        void serviceMeterState(int btnType, int mFare);  //미터기 버튼 수신상태
+        void serviceMeterMenuState(String menuMsg);  //미터기 메뉴 수신상태
+//        void serviceMeterMenuState(ArrayList<String> arrayList, int listsize);
     }
 
     // Activity 와 통신할 callback 객체
@@ -336,13 +339,13 @@ public class AwindowService extends Service {
             String deviceName = device.getName();
             String deviceAddress = device.getAddress();
             deviceList.add(deviceName + ": " + deviceAddress);
-            Log.d("scan_deviceList", deviceList + "");   //status - 여러가지 등록된 블루투스 기기들이 있을 경우 하나만 페어링 되게 설정이 안되어있음..
+            Log.d("deviceList", deviceList + "");   //status - 여러가지 등록된 블루투스 기기들이 있을 경우 하나만 페어링 되게 설정이 안되어있음..
 
             if (deviceName.contains("AM101")) {
-                Log.d("scan_device_toPAried", deviceName);
+                Log.d("deviceList_tobePaired", deviceName);
                 setting.BLUETOOTH_DEVICE_NAME = deviceName;
                 setting.BLUETOOTH_DEVICE_ADDRESS = deviceAddress;
-                Log.d("scan_device_paired", setting.BLUETOOTH_DEVICE_NAME + ": " + setting.BLUETOOTH_DEVICE_ADDRESS);  //AM1010003: 3C:A5:51:85:1A:36
+                Log.d("deviceList_paired", setting.BLUETOOTH_DEVICE_NAME + ": " + setting.BLUETOOTH_DEVICE_ADDRESS);  //AM1010003: 3C:A5:51:85:1A:36
 
                 //status - 현재는 thread 없이 바로 갓서버에 연결
 
@@ -429,6 +432,20 @@ public class AwindowService extends Service {
                 }
                 //status: 빈차등 메뉴 수신값
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE) {
+
+                Log.d("meterHandler", AMBlestruct.AMReceiveMenu.MENU_OPEN+"");
+//                Log.d("meterHandler", AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE+""); //49 == 1
+                Log.d("meterHandler", AMBlestruct.AMReceiveMenu.MENU_MSG+"");
+
+//                List<String> list = new ArrayList<String>(Arrays.asList(AMBlestruct.AMReceiveMenu.MENU_MSG.split("\n")));
+
+                ArrayList<String> arrList = new ArrayList<>(Arrays.asList(AMBlestruct.AMReceiveMenu.MENU_MSG.split("\n")));
+
+                Log.d("arrList", arrList.toString());
+                Log.d("arrList", arrList.size()+"");
+
+//                mCallback.serviceMeterMenuState(arrList, arrList.size());
+                mCallback.serviceMeterMenuState(AMBlestruct.AMReceiveMenu.MENU_MSG);
 
             }
         }

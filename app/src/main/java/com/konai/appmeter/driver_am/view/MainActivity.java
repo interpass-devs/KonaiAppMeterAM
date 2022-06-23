@@ -3,34 +3,21 @@ package com.konai.appmeter.driver_am.view;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.fonts.Font;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -42,77 +29,65 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
-
 import com.konai.appmeter.driver_am.BuildConfig;
+import com.konai.appmeter.driver_am.MenuAdapter;
 import com.konai.appmeter.driver_am.R;
-import com.konai.appmeter.driver_am.dialog.InputFareDialog;
 import com.konai.appmeter.driver_am.service.AwindowService;
 import com.konai.appmeter.driver_am.setting.AMBlestruct;
 import com.konai.appmeter.driver_am.setting.PermissionSupoort;
 import com.konai.appmeter.driver_am.setting.setting;
 import com.konai.appmeter.driver_am.socket.AMBluetoothManager;
-import com.konai.appmeter.driver_am.socket.AMPacket;
 import com.konai.appmeter.driver_am.util.ButtonFitText;
 import com.konai.appmeter.driver_am.util.FontFitTextView;
 import com.konai.appmeter.driver_am.util.MyTouchListener;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
     private PermissionSupoort mPermission;
-
-    static final UUID BT_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
     private AMBluetoothManager amBluetoothManager = null;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice bluetoothDevice = null;
     private String mBluetoothAddress = "";
     private int mConnectionState = STATE_DISCONNECTED;
     private static final int ACCESS_FINE_LOCATION_DENIED = 10;
-    private static final int BLUETOOTH_SCAN_DENIED = 60;
     private static final int BLUETOOTH_CONNECT_DENIED = 50;
-    private static final int REQUEST_ENABLE_BLE = 20;
     private static final int REQUEST_ENABLE_BT = 30;
     private static final int ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 100;
-    private String mDrvnum = "";
-    private Handler mHandler;
     private int connectionState = STATE_DISCONNECTED;
     private static final int STATE_DISCONNECTED = 0;
-    private static final int STATE_CONNECTING = 1;
-    private static final int STATE_CONNECTED = 2;
-
     public static AwindowService windowService = null;
     String log_ = "log_mainActivity";
-
     private Context mContext;
     private MyTouchListener mTouchListener;
     private View viewframe1, viewframe2, viewframe3, viewframe4, viewframe5;
     private FrameLayout frame1, frame2, frame3, frame4, frame5;
-    private LinearLayout main_layout, menu_layout, main_btn_layout, add_fare_frame_layout, number_pad_frame_layout;
+    private LinearLayout main_layout, menu_layout, main_btn_layout, add_fare_frame_layout, number_pad_frame_layout, menu_list_layout;
+    private MenuAdapter menuAdapter;
+    private RecyclerView menuRecyclerView;
+    private TextView menu_text;
+    private ArrayList<String> itemList = new ArrayList<>();
     private ButtonFitText btn_menu, btn_complex, btn_login, btn_arrive, btn_add_pay;
     private ButtonFitText btn_empty, btn_drive, btn_call, btn_pay;
-    private ImageView iv_ble, iv_wifi;
-    private FontFitTextView tv_night_status, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status;
+    private ImageView iv_ble;
+    private FontFitTextView tv_night_status, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status, menu_title;
     private Boolean menuClicked = true;
     private RadioButton btn_close, btn_ok;
 
@@ -156,7 +131,39 @@ public class MainActivity extends AppCompatActivity {
                 btn_main_status.setText("호출");
             }
         }
+
+        @Override
+        public void serviceMeterMenuState(String menuMsg) {
+
+            ArrayList<String> menuList = new ArrayList<>(Arrays.asList(menuMsg.split("\n")));
+
+            Log.d("menulist", menuList.toString());
+            Log.d("menulist", menuList.size()+"");
+
+
+//            menuAdapter = new MenuAdapter(MainActivity.this, menuList);
+//            menuRecyclerView.setAdapter(menuAdapter);
+
+            display_menuStatus(menuList);
+        }
     };
+
+
+    public void display_menuStatus(ArrayList<String> menuList) {
+
+        for (int i=0; i<menuList.size(); i++) {
+            menuList.add(new String(menuList.get(i)));
+        }
+
+        menuAdapter = new MenuAdapter(MainActivity.this, menuList);
+        menuRecyclerView.setAdapter(menuAdapter);
+
+    }
+
+
+
+
+
 
 
     public void display_bleStatus(boolean ble) {
@@ -284,6 +291,12 @@ public class MainActivity extends AppCompatActivity {
         //블루투스 연결 권한
         bleConnPermission();
 
+//        if (windowService != null) {
+//            Log.d(log_, "onResume");
+//
+//            windowService.connectAM();
+//        }
+
 
     }
 
@@ -301,7 +314,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void bleConnPermission() {
         String ble_conn_permission = Manifest.permission.BLUETOOTH_CONNECT;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { //31
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { //31
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { //21
             if (checkSelfPermission(ble_conn_permission) == PackageManager.PERMISSION_DENIED) {
                 requestPermissions(new String[]{ble_conn_permission}, BLUETOOTH_CONNECT_DENIED);
             }
@@ -425,6 +439,10 @@ public class MainActivity extends AppCompatActivity {
         tv_add_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_addpayment);
         tv_rescall_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_rescallpay);
         tv_total_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_totalpay);
+        menu_title = (FontFitTextView) viewframe1.findViewById(R.id.menu_title);
+        menu_list_layout = (LinearLayout) viewframe1.findViewById(R.id.layoutlist);
+        menuRecyclerView = (RecyclerView) viewframe1.findViewById(R.id.menuRecyclerView);
+        menu_text = (TextView) findViewById(R.id.menu_text);
         main_layout = viewframe1.findViewById(R.id.mainframe1_layout);
         menu_layout = viewframe1.findViewById(R.id.menu_frame_layout);
 

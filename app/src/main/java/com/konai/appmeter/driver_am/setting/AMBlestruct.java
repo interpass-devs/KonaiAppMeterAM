@@ -73,11 +73,29 @@ public class AMBlestruct {
 
 
     public static class  MeterState {
-        //빈차등으로부터 수신받을 때 버튼값
+        //빈차등으로부터 수신받을 때
+        //전송 버튼값
         public static final int PAY = 1;  //지불
         public static final int EMPTY = 2; //빈차
         public static final int DRIVE = 3; //주행
         public static final int CALL = 4;  //할증
+    }
+
+
+    //메뉴 수신값
+    public static class AMReceiveMenu {
+
+        public static String MENU_RECEIVE_TIME; //날짜시간
+        public static byte MENU_MSG_TYPE;    //메세지 종류
+        public static String MENU_MSG;         //메뉴 메세지
+
+        //빈차등으로부터 수신받을 때
+        //전송 메뉴타입 값
+        public static final int MENU_CLOSE = 0;
+        public static final int MENU_OPEN = 1;
+        public static final int MENU_PRINT_INFO = 2;
+        public static final int MENU_PRINT_NUMPAD = 3;
+
     }
 
     synchronized public static void setSStateupdate(boolean bupdate)
