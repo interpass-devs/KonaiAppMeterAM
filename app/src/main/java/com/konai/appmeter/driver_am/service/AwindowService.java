@@ -8,6 +8,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothSocket;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
@@ -41,7 +42,12 @@ import com.konai.appmeter.driver_am.socket.AMBluetoothManager;
 import com.konai.appmeter.driver_am.util.FontFitTextView;
 import com.konai.appmeter.driver_am.view.MainActivity;
 
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -50,7 +56,11 @@ public class AwindowService extends Service {
     String TAG = "WindowService";
     NotificationManager notificationManager;
     private LocationManager locationManager;
-    private static AMBluetoothManager mBluetoothLE = null;
+    private static AMBluetoothManager amBluetoothManager = null;
+    public BluetoothDevice bluetoothDevice = null;
+    static final UUID BT_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
+    public Set<BluetoothDevice> bluetoothDeviceSet;
+    public ArrayList<String> deviceList = new ArrayList<>();
     public WindowManager windowManager;
     private BluetoothAdapter mBluetoothAdapter = null;
     public View mView;
@@ -104,13 +114,15 @@ public class AwindowService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        mBluetoothLE = new AMBluetoothManager(this, AwindowService.this);
+        amBluetoothManager = new AMBluetoothManager(this, AwindowService.this);
         ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
 //        ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN);
 //        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            Log.d("start_scan", "oooo");
 
             startForegroundService();
 
@@ -122,11 +134,12 @@ public class AwindowService extends Service {
         mainThread.start();
 
 
-
         if (setting.gUseBLE == true) {
             Log.d("start_scan", "gBLE == true");
-            setBleScan();
-        }else {
+            setBleScan();  //me: original
+//            startPairingBluetooth();
+
+        } else {
 
 //            setBleScan();
         }
@@ -265,6 +278,8 @@ public class AwindowService extends Service {
         startActivity(i);
     }//show_mainActivity
 
+
+
     private void showhideCallBtn(boolean show) {
 
         if (mView == null) {
@@ -297,220 +312,49 @@ public class AwindowService extends Service {
             Log.d("start_scan_device", setting.BLUETOOTH_DEVICE_NAME); //null
 
 
-//            if (setting.BLUETOOTH_DEVICE_ADDRESS.equals("") == false && setting.BLUETOOTH_CARNO.equals(drv))
-            if (setting.BLUETOOTH_DEVICE_ADDRESS.equals("") == false && setting.BLUETOOTH_CARNO.equals(mDrvnum)) {
-                Log.d("start_scan_device", setting.BLUETOOTH_DEVICE_NAME); //null
-
-                setting.BLUETOOTH_FINDEND = true;
-                scanLeDevice(true);
-            } else {
-                scanLeDevice(true);
-            }
-
+            //me: new
+            startPairingBluetooth();
 
         }
     }
 
-    public void scanLeDevice(final boolean enable) {
-        if (enable) {
-            //stop scanning after a pre-defined scan period
-//            mHandler = new Handler();
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-
-                    Log.e("scanDevice_run", "stopScanBLE");
-
-                    stopScanBLE();
-
-                }
-            }, setting.SCAN_PERIOD);
-
-            Log.d("scan_device", "start scan ble - auto conn");
-
-            startScanBLE();
-
-        } else {
-
-            stopScanBLE();
-        }
-    }//scanLeDevice
 
 
 
-    private void startScanBLE() {
+    private void startPairingBluetooth() {
 
-        setting.BLESCANNING_MODE = true;
+        bluetoothDeviceSet = mBluetoothAdapter.getBondedDevices();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Log.d("scan_ble_", "LOLLIPOP");
-//            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-//                // TODO: Consider calling
-//                //    ActivityCompat#requestPermissions
-//                // here to request the missing permissions, and then overriding
-//                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//                //                                          int[] grantResults)
-//                // to handle the case where the user grants the permission. See the documentation
-//                // for ActivityCompat#requestPermissions for more details.
-//                return;
-//            }
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
-            }
+        for (BluetoothDevice device : bluetoothDeviceSet) {
+            String deviceName = device.getName();
+            String deviceAddress = device.getAddress();
+            deviceList.add(deviceName + ": " + deviceAddress);
+            Log.d("scan_deviceList", deviceList + "");   //status - 여러가지 등록된 블루투스 기기들이 있을 경우 하나만 페어링 되게 설정이 안되어있음..
 
-            mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
-        } else {
-            mBluetoothAdapter.startLeScan(mLeScanCallBack);
-        }
-    }
+            if (deviceName.contains("AM101")) {
+                Log.d("scan_device_toPAried", deviceName);
+                setting.BLUETOOTH_DEVICE_NAME = deviceName;
+                setting.BLUETOOTH_DEVICE_ADDRESS = deviceAddress;
+                Log.d("scan_device_paired", setting.BLUETOOTH_DEVICE_NAME + ": " + setting.BLUETOOTH_DEVICE_ADDRESS);  //AM1010003: 3C:A5:51:85:1A:36
 
+                //status - 현재는 thread 없이 바로 갓서버에 연결
 
-
-
-    private void stopScanBLE() {
-
-        Log.d("stopScanBLE", "stopScanBLE");
-
-        setting.BLESCANNING_MODE = false;
-        mHandler.removeCallbacksAndMessages(null);
-
-        if (mBluetoothAdapter.isEnabled() == false) {
-            return;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-//                // TODO: Consider calling
-//                //    ActivityCompat#requestPermissions
-//                // here to request the missing permissions, and then overriding
-//                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//                //                                          int[] grantResults)
-//                // to handle the case where the user grants the permission. See the documentation
-//                // for ActivityCompat#requestPermissions for more details.
-//                return;
-//            }
-            mBluetoothAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
-        } else {
-            mBluetoothAdapter.stopLeScan(mLeScanCallBack);
-        }
-
-    }
-
-
-
-    private ScanCallback mScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-            Log.d("scan_mScanCallback_1", "111");
-
-            BluetoothDevice device = result.getDevice();
-            Log.d("scan_mScanCallback", device + "");  //52:43:BC:9D:5C:C5
-
-            try {
-//                if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-//                    // TODO: Consider calling
-//                    //    ActivityCompat#requestPermissions`
-//                    // here to request the missing permissions, and then overriding
-//                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//                    //                                          int[] grantResults)
-//                    // to handle the case where the user grants the permission. See the documentation
-//                    // for ActivityCompat#requestPermissions for more details.
-//                    return;
-//                }
-                final String deviceName = device.getName();
-
-                if (deviceName.contains("AM1011234")) {
-
-                    setting.BLUETOOTH_DEVICE_ADDRESS = device.getAddress();
-                    setting.BLUETOOTH_DEVICE_NAME = device.getName();
-//                    setting.BLUETOOTH_CARNO = mDrvnum;
-                    setting.BLUETOOTH_CARNO = deviceName.substring(5,9);  //0001
-                    Log.d("scan_address", setting.BLUETOOTH_DEVICE_ADDRESS); //3C:A5:49:DE:B7:97
-                    Log.d("scan_name", setting.BLUETOOTH_DEVICE_NAME);       //AM1010001
-                    Log.d("scan_carno", setting.BLUETOOTH_CARNO);
-
-                    stopScanBLE();
-
-                    //status = save_info
-
-                    //gatt 서버에 연결
-                    connectAM();
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
+                //gatt 서버에 연결
+                connectAM();
             }
         }
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-            Log.e("scan_result - Results", results.toString());
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-            Log.e("scan_result - Results", errorCode + ": failed");
-        }
-    };//mScanCallback
-
-
-
-
-    private BluetoothAdapter.LeScanCallback mLeScanCallBack =
-            new BluetoothAdapter.LeScanCallback() {
-                @Override
-                public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    try {
-//                        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-//                            // TODO: Consider calling
-//                            //    ActivityCompat#requestPermissions
-//                            // here to request the missing permissions, and then overriding
-//                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//                            //                                          int[] grantResults)
-//                            // to handle the case where the user grants the permission. See the documentation
-//                            // for ActivityCompat#requestPermissions for more details.
-//                            return;
-//                        }
-                        final String deviceName = device.getName();
-                        if (deviceName != null && deviceName.equals("") == false) {
-                            if (deviceName.contains("AM1011234")) {
-                                setting.BLUETOOTH_DEVICE_ADDRESS = device.getAddress();
-                                setting.BLUETOOTH_DEVICE_NAME = device.getName();
-
-                                Log.d("scan_deviceAddress", device.getAddress());
-                                Log.d("scan_deviceName", device.getName());
-                            }
-                        }
-                    }catch (Exception e){e.printStackTrace();}
-                }
-            };//mLeScanCallBack
-
-
+    }
 
     public boolean connectAM() {
 
-        if (mBluetoothLE != null) {
+        if (amBluetoothManager != null) {
 
             Log.d("connectAM","connectAM not null");
 
-            mBluetoothLE.connectAM();
-//            mBluetoothLE.connectBLE();
+            amBluetoothManager.connectAM();
         }else {
             Log.d("connectAM","connectAM null");
         }
-
-
-
         return true;
     }
 
@@ -585,15 +429,15 @@ public class AwindowService extends Service {
 
     //me: 버튼값 업데이트 -> 빈차등으로 보내기
     public boolean update_BLEmeterstate(String sstate) {
-        if (mBluetoothLE != null) {
-            mBluetoothLE.update_AMmeterstate(sstate);
+        if (amBluetoothManager != null) {
+            amBluetoothManager.update_AMmeterstate(sstate);
         }
         return true;
     }
 
     public boolean menu_meterState(String requestCode) {
-        if (mBluetoothLE != null) {
-            mBluetoothLE.menu_AMmeterState(requestCode);
+        if (amBluetoothManager != null) {
+            amBluetoothManager.menu_AMmeterState(requestCode);
         }
         return true;
     }

@@ -82,26 +82,8 @@ public class MainActivity extends AppCompatActivity {
 
     private PermissionSupoort mPermission;
 
-    ArrayList<String> deviceList = new ArrayList<>();
-    ArrayAdapter adapter;
-    Set<BluetoothDevice> devices;
-    String deviceName, deviceAddress;
-    DiscoveryResultReceiver discoveryResultReceiver;
-
-    BluetoothSocket bluetoothSocket;
-    OutputStream outputStream;
-    InputStream inputStream;
-
-    BluetoothAdapter bluetoothAdapter;
-    BluetoothSocket socket;
-    DataInputStream dis;
-    DataOutputStream dos;
-    ClientThread clientThread;
     static final UUID BT_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
-
-
-    private AMBluetoothManager mBluetoothLE = null;
-    private BluetoothManager mBluetoothManager = null;
+    private AMBluetoothManager amBluetoothManager = null;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice bluetoothDevice = null;
     private String mBluetoothAddress = "";
@@ -114,24 +96,16 @@ public class MainActivity extends AppCompatActivity {
     private static final int ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 100;
     private String mDrvnum = "";
     private Handler mHandler;
-
     private int connectionState = STATE_DISCONNECTED;
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
-    //    public static LocService m_Service;
     public static AwindowService windowService = null;
-
-    int lbs_x = -1;
-    int lbs_y = -1;
-    int lbs_w = 300;
-    int lbs_h = 138;
+    String log_ = "log_mainActivity";
 
     private Context mContext;
-
     private MyTouchListener mTouchListener;
-
     private View viewframe1, viewframe2, viewframe3, viewframe4, viewframe5;
     private FrameLayout frame1, frame2, frame3, frame4, frame5;
     private LinearLayout main_layout, menu_layout, main_btn_layout, add_fare_frame_layout, number_pad_frame_layout;
@@ -140,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageView iv_ble, iv_wifi;
     private FontFitTextView tv_night_status, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status;
     private Boolean menuClicked = true;
-
     private RadioButton btn_close, btn_ok;
 
 
@@ -202,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(@NonNull Message msg) {
 
-            Log.d("displayHandler", msg + "");
+            Log.d("log_", "displayHandler- " + msg);
 
 //            super.handleMessage(msg);
 
@@ -210,10 +183,10 @@ public class MainActivity extends AppCompatActivity {
                 case 12:
                     switch (AMBlestruct.AMReceiveFare.M_STATE) {
                         case "1":
-                            Log.d("displayHandler_1", "1");
+                            Log.d(log_+"displayHandler_1", "1");
                             break;
                         case "2":
-                            Log.d("displayHandler_2", "2");
+                            Log.d(log_+"displayHandler_2", "2");
                             break;
                     }
                     break;
@@ -225,14 +198,19 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder iBinder) {
+            Log.d(log_, "service connected");
             AwindowService.ServiceBinder binder = (AwindowService.ServiceBinder) iBinder;
             windowService = binder.getService();
             windowService.registerCallback(mCallback);
+
+            if (windowService == null) {
+                Log.d(log_, "service null");
+            }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
+            Log.d(log_, "service disconnected");
         }
     };
 
@@ -242,25 +220,40 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         mContext = this;
 
-        //서비스가 백그라운드에서 돌아가고 있는지 확인
-//        m_Service.isLocServiceRunning(mContext);
+        //me: 권한설정
+
+        //앱위에그리기 권한
+        oerlayPermission();
+
+        //위치권한
+        locationPermission();
+
+        //블루투스 연결 권한
+        bleConnPermission();
+
 
         setting.APP_VERSION = Double.parseDouble(BuildConfig.VERSION_NAME);
 
-        if (windowService == null) {
-            bindService(new Intent(getApplicationContext(),
-                    AwindowService.class), mServiceConnection, Context.BIND_AUTO_CREATE); //20180117
+//        if(windowService == null) {
+//            bindService(new Intent(getApplicationContext(),
+//                    AwindowService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
+//        }
 
-            if (mBluetoothLE != null) {
-                windowService.connectAM();
-            }
-        }
 
+
+
+
+
+
+
+        //me:[블루투스 페어링 연결 설정]
 
         //블루투스 관리자객체 소환
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
 
         //블루투스 활성화 (블루투스가 켜져있는지 확인)
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
@@ -269,274 +262,43 @@ public class MainActivity extends AppCompatActivity {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         } else {
-            Log.d("bluetooth_result", "ble on");
-
             //me: 기기검색 실행코드
             //status -- AWindowService 클래스에서 연결해주고 있음..
 
         }
 
 
-        //me: 블루투스 페어링 설정
-//        locationPermission();
-
-        bleConnPermission();
-
-        bleScanPermission();
-
-        adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, deviceList);
-
-        //블루투스 관리자객체 소환
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        devices = mBluetoothAdapter.getBondedDevices();
-        for (BluetoothDevice device : devices) {
-            deviceName = device.getName();
-            ;
-            deviceAddress = device.getAddress();
-
-            deviceList.add(deviceName + ": " + deviceAddress);
-            Log.d("deviceList", deviceList + "");  //[AM1011234: 3C:A5:51:85:1A:36]
-
-            if (deviceName.equals("AM1011234")) {
-                deviceAddress = device.getAddress();
-                bluetoothDevice = device;
-
-                clientThread = new ClientThread(deviceAddress);
-                clientThread.start();
-                break;
-
-            }
-
-        }
-
-
-//        clientThread = new ClientThread(deviceAddress);
-
-
-        //새로운 잔치 broadCast
-//        discoveryResultReceiver = new DiscoveryResultReceiver();
-//        IntentFilter filter = new IntentFilter();
-//        filter.addAction(BluetoothDevice.ACTION_FOUND);
-//        registerReceiver(discoveryResultReceiver, filter);
-//
-//        IntentFilter filter_end = new IntentFilter();
-//        filter_end.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-//        registerReceiver(discoveryResultReceiver, filter_end);
-//
-//
-//        mBluetoothAdapter.startDiscovery();
-
-
-
-        //me: 권한설정
-
-        /**
-         //앱위에그리기 권한
-         oerlayPermission();
-
-         //위치권한
-         locationPermission();
-
-         //블루투스 연결 권한
-         //        bleConnPermission();
-         //
-         //        //블루투스 스캔 권한
-         //        bleScanPermission();
-         **/
-
-
         viewFrameVariablesConfiguration();
 
 
-        mBluetoothLE = new AMBluetoothManager(mContext);
-
     }//onCreate
 
-
-    class DiscoveryResultReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            String action = intent.getAction();
-
-            if (action.equals(BluetoothDevice.ACTION_FOUND)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
-                if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return;
-                }
-                if (device.getName() != null) {
-                    deviceName = device.getName();
-
-                    Log.d("ClientThread_d", deviceName);
-
-                    if (deviceName.equals("AM1011234")) {
-
-                        deviceAddress = device.getAddress();
-
-                        Log.d("ClientThread_device", deviceName+", "+deviceAddress);
-
-//                        Intent intent1 = getIntent()
-
-
-                    }
-                }
-                deviceList.add(device.getName() + ": " + device.getAddress());
-                adapter.notifyDataSetChanged();
-
-            } else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
-                Toast.makeText(mContext, "블루투스 탐색 완료", Toast.LENGTH_SHORT).show();
-            }
-
-        }
-    }
-
-
-    private BluetoothSocket createBluetoothSocket(BluetoothDevice device)
-            throws IOException {
-        if(Build.VERSION.SDK_INT >= 10){
-            try {
-                final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", new Class[] { UUID.class });
-                return (BluetoothSocket) m.invoke(device, BT_UUID);
-            } catch (Exception e) {
-                Log.e("socket", "Could not create Insecure RFComm Connection",e);
-            }
-        }
-        return  device.createRfcommSocketToServiceRecord(BT_UUID);
-    }
-
-
-    class ClientThread extends Thread{
-
-        BluetoothSocket socket;
-        String address;
-
-        public ClientThread(String address) {
-            BluetoothSocket tmp = null;
-            this.address = address;
-
-            try {
-//                tmp = bluetoothDevice.createInsecureRfcommSocketToServiceRecord(BT_UUID);
-                tmp = createBluetoothSocket(bluetoothDevice);
-            }catch (Exception e) {
-
-            }
-            socket = tmp;
-        }
-
-        @Override
-        public void run() {
-            mBluetoothAdapter.cancelDiscovery();
-
-            // mac 주소에 해당하는 BluetoothDevice 객체를 얻어오기
-//            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-//            devices = mBluetoothAdapter.getRemoteDevice(address);
-
-            //원격디바이스와 소켓연결 작업 수행
-            try {
-//                socket= bluetoothDevice.createInsecureRfcommSocketToServiceRecord(BT_UUID);
-                 socket.connect();   //연결시도
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d("ClientThread_run", "서버 연결 성공");
-                    }
-                });
-
-                //접속된 Socket 을 통해 데이터를 주고받는 무지개롣 만들기
-//                dis= new DataInputStream(socket.getInputStream());
-//                dos= new DataOutputStream(socket.getOutputStream());
-//
-//                //스트림을 통해 원하는 데이터 주고받기
-//                dos.writeUTF("안녕하세요.");   //UTF: 한글도 가능한 문자열 인코딩방식
-//                dos.writeInt(50);
-//                dos.flush();
-
-
-            } catch (IOException e) {
-                Log.d("ClientThread_e", e.toString());
-                e.printStackTrace();
-            }
-        }
-    }
 
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        Log.d("connectAM_main", "onResume");
-        Log.d("main_", setting.BLE_STATE+":  "+setting.BLUETOOTH_DEVICE_ADDRESS);
 
-        if (setting.BLUETOOTH_DEVICE_ADDRESS.equals("")) {
-            Log.d("main_","device not found");
-        }
-
-        /**
         //블루투스 연결 권한
-        bleConnPermission();
+//        bleConnPermission();
 
         //블루투스 스캔 권한
-        bleScanPermission();
-        **/
+//        bleScanPermission();
+
     }
 
     //위치권한데 대한 동적퍼미션 작업 (Location permission)
     public void locationPermission() {
         String permission = Manifest.permission.ACCESS_FINE_LOCATION;
-        String permission2 = Manifest.permission.ACCESS_COARSE_LOCATION;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {  //23
             if (checkSelfPermission(permission) == PackageManager.PERMISSION_DENIED) {
                 requestPermissions(new String[]{permission}, ACCESS_FINE_LOCATION_DENIED);
             }
-//            bleScanPermission();
-//            if (checkSelfPermission(new String[]))
         }
 
     }
 
-    public void bleScanPermission() {
-
-        Log.d("bleScanPermission","1");
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-
-            Log.d("bleScanPermission","2");
-
-            if (this.checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-
-                Log.d("bleScanPermission","3");
-
-                requestPermissions(new String[]{Manifest.permission.BLUETOOTH_SCAN}, BLUETOOTH_SCAN_DENIED);
-            }else {
-
-                Log.d("bleScanPermission","4");
-
-                Toast.makeText(MainActivity.this, "scan permission", Toast.LENGTH_SHORT).show();
-            }
-//            bleConnPermission();
-        }
-    }
 
     public void bleConnPermission() {
         String ble_conn_permission = Manifest.permission.BLUETOOTH_CONNECT;
@@ -544,58 +306,7 @@ public class MainActivity extends AppCompatActivity {
             if (checkSelfPermission(ble_conn_permission) == PackageManager.PERMISSION_DENIED) {
                 requestPermissions(new String[]{ble_conn_permission}, BLUETOOTH_CONNECT_DENIED);
             }
-//            oerlayPermission();
         }
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case 1000:
-                if (resultCode == RESULT_OK) {
-//                    clientThread = new ClientThread(deviceAddress);
-//                    clientThread.start();
-                }
-//                discoveryResultReceiver
-                break;
-            //위치권한 설정을 거부했을때
-            case ACCESS_FINE_LOCATION_DENIED:
-                Toast.makeText(mContext, "위치권한을 거부하였습니다.", Toast.LENGTH_SHORT).show();
-                break;
-
-            case BLUETOOTH_SCAN_DENIED:
-                Log.d("bleScanPermission","4- scan denied");
-                Toast.makeText(mContext, "!!!!!!", Toast.LENGTH_SHORT).show();
-                break;
-
-            case BLUETOOTH_CONNECT_DENIED:
-                Toast.makeText(mContext, "블루투스 연결 거부", Toast.LENGTH_SHORT).show();
-                break;
-
-            //블루투스 활성화
-            case REQUEST_ENABLE_BT:
-                if (resultCode == RESULT_OK) {
-                    Toast.makeText(mContext, "블루투스 ON", Toast.LENGTH_SHORT).show();
-//                    Log.d("REQUEST_ENABLE_BT", data.getStringExtra("Address"));
-                } else if (resultCode == RESULT_CANCELED) {
-                    Toast.makeText(mContext, "블루투스 설정을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
-                }
-                break;
-
-            //앱그리기권한 설정을 거부했을 때
-            case ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE:
-                if (!Settings.canDrawOverlays(MainActivity.this)) {
-                    finish();
-                } else {
-                    startWindowService();
-//                startService();
-                }
-                break;
-        }
-
     }
 
     public void oerlayPermission() {
@@ -619,23 +330,67 @@ public class MainActivity extends AppCompatActivity {
                 alert.show();
 
             } else {
-//                startService();
                 startWindowService();
             }
         } else
-//            startService();
             startWindowService();
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+
+            //위치권한 설정을 거부했을때
+            case ACCESS_FINE_LOCATION_DENIED:
+                Toast.makeText(mContext, "위치권한을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
+                break;
+
+            case BLUETOOTH_CONNECT_DENIED:
+                Toast.makeText(mContext, "블루투스 연결을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
+                break;
+
+            //블루투스 활성화
+            case REQUEST_ENABLE_BT:
+                if (resultCode == RESULT_OK) {
+                    Toast.makeText(mContext, "블루투스 ON", Toast.LENGTH_SHORT).show();
+
+                } else if (resultCode == RESULT_CANCELED) {
+                    Toast.makeText(mContext, "블루투스 설정을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            //앱그리기권한 설정을 거부했을 때
+            case ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE:
+                if (!Settings.canDrawOverlays(MainActivity.this)) {
+                    finish();
+                } else {
+                    startWindowService();
+                }
+                break;
+        }
     }
 
 
     //me: 메인화면에서는 보이지말고 앱 밖에서만 보이도록..
     void startWindowService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if(windowService == null) {
+                bindService(new Intent(getApplicationContext(),
+                        AwindowService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
+            }
+
             startForegroundService(new Intent(MainActivity.this, AwindowService.class));
         } else {
             startService(new Intent(MainActivity.this, AwindowService.class));
         }
     }
+
+
+
 
 
     private void viewFrameVariablesConfiguration() {
@@ -722,7 +477,7 @@ public class MainActivity extends AppCompatActivity {
         btn_arrive.setOnClickListener(mainBtnClickListener);
         btn_add_pay.setOnClickListener(mainBtnClickListener);
 
-    }
+    }//viewFrameVariablesConfiguration
 
 
 
@@ -731,7 +486,6 @@ public class MainActivity extends AppCompatActivity {
 
         super.onSaveInstanceState(outState);
 
-//        outState.putInt("num", cnt);
     }
 
 
@@ -839,8 +593,6 @@ public class MainActivity extends AppCompatActivity {
                     number_pad_frame_layout.setVisibility(View.VISIBLE);
                     add_fare_frame_layout.setVisibility(View.VISIBLE);
                     break;
-
-
 
             }
         }
