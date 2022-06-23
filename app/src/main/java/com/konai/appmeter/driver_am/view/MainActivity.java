@@ -162,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
     public void display_bleStatus(boolean ble) {
         if (ble == true) {
             iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
+            Toast.makeText(MainActivity.this, "빈차등 연결 성공", Toast.LENGTH_SHORT).show();
         } else {
             iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
         }
@@ -232,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
         locationPermission();
 
         //블루투스 연결 권한
-        bleConnPermission();
+        bleConnPermission();  //여기서 권한 설정이 안됨.. 이유모름. 그래서 onResume()에서 다시 해줌.
 
 
         setting.APP_VERSION = Double.parseDouble(BuildConfig.VERSION_NAME);
@@ -281,10 +282,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         //블루투스 연결 권한
-//        bleConnPermission();
+        bleConnPermission();
 
-        //블루투스 스캔 권한
-//        bleScanPermission();
 
     }
 
@@ -337,41 +336,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @TargetApi(Build.VERSION_CODES.M)
+//    @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        switch (requestCode) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            switch (requestCode) {
 
-            //위치권한 설정을 거부했을때
-            case ACCESS_FINE_LOCATION_DENIED:
-                Toast.makeText(mContext, "위치권한을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
-                break;
+                //위치권한 설정을 거부했을때
+                case ACCESS_FINE_LOCATION_DENIED:
+                    Toast.makeText(mContext, "위치권한을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
+                    break;
 
-            case BLUETOOTH_CONNECT_DENIED:
-                Toast.makeText(mContext, "블루투스 연결을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
-                break;
+                case BLUETOOTH_CONNECT_DENIED:
+                    Toast.makeText(mContext, "블루투스 연결을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
+                    break;
 
-            //블루투스 활성화
-            case REQUEST_ENABLE_BT:
-                if (resultCode == RESULT_OK) {
-                    Toast.makeText(mContext, "블루투스 ON", Toast.LENGTH_SHORT).show();
+                //블루투스 활성화
+                case REQUEST_ENABLE_BT:
+                    if (resultCode == RESULT_OK) {
+                        Toast.makeText(mContext, "블루투스 ON", Toast.LENGTH_SHORT).show();
 
-                } else if (resultCode == RESULT_CANCELED) {
-                    Toast.makeText(mContext, "블루투스 설정을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
-                }
-                break;
+                    } else if (resultCode == RESULT_CANCELED) {
+                        Toast.makeText(mContext, "블루투스 설정을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
 
-            //앱그리기권한 설정을 거부했을 때
-            case ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE:
-                if (!Settings.canDrawOverlays(MainActivity.this)) {
-                    finish();
-                } else {
-                    startWindowService();
-                }
-                break;
+                //앱그리기권한 설정을 거부했을 때
+                case ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE:
+                    if (!Settings.canDrawOverlays(MainActivity.this)) {
+                        finish();
+                    } else {
+                        startWindowService();
+                    }
+                    break;
+            }
         }
+
+
     }
 
 
