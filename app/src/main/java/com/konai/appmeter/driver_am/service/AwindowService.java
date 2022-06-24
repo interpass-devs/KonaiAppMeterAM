@@ -125,7 +125,7 @@ public class AwindowService extends Service {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
-            Log.d("start_scan", "oooo");
+//            Log.d("start_scan", "oooo");
 
             startForegroundService();
 
@@ -138,7 +138,6 @@ public class AwindowService extends Service {
 
 
         if (setting.gUseBLE == true) {
-            Log.d("start_scan", "gBLE == true");
             setBleScan();  //me: original
 //            startPairingBluetooth();
 
@@ -270,7 +269,7 @@ public class AwindowService extends Service {
 
 //        showhideCallBtn(false);
 
-        Log.d("check_params", mView.getLayoutParams() + ""); //null..
+//        Log.d("check_params", mView.getLayoutParams() + ""); //null..
 
         windowManager.addView(mView, params); // 윈도우에 layout 을 추가 한다.
     }
@@ -309,9 +308,8 @@ public class AwindowService extends Service {
 
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
 
-            Log.d("start_scan_device", "isEnabled");  //y
-
-            Log.d("start_scan_device", setting.BLUETOOTH_DEVICE_NAME); //null
+//            Log.d("start_scan_device", "isEnabled");  //y
+//            Log.d("start_scan_device", setting.BLUETOOTH_DEVICE_NAME); //null
 
 
             //me: new
@@ -359,11 +357,9 @@ public class AwindowService extends Service {
 
         if (amBluetoothManager != null) {
 
-            Log.d("connectAM","connectAM not null");
-
             amBluetoothManager.connectAM();
         }else {
-            Log.d("connectAM","connectAM null");
+//            Log.d("connectAM","connectAM null");
         }
         return true;
     }
@@ -373,7 +369,7 @@ public class AwindowService extends Service {
 
         @Override
         public void handleMessage(@NonNull Message msg) {
-            Log.d("meterHandler_service", msg.what+"");
+//            Log.d("meterHandler_service", msg.what+"");
 
             //status: 블루투스 상태값
             if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE) {
@@ -387,7 +383,7 @@ public class AwindowService extends Service {
                 //status: 빈차등 현재상태 수신값
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE) {
 
-                Log.d("mfare_check", AMBlestruct.AMReceiveFare.M_START_FARE+" + "+AMBlestruct.AMReceiveFare.M_CALL_FARE+" + "+AMBlestruct.AMReceiveFare.M_ETC_FARE);
+//                Log.d("mfare_check", AMBlestruct.AMReceiveFare.M_START_FARE+" + "+AMBlestruct.AMReceiveFare.M_CALL_FARE+" + "+AMBlestruct.AMReceiveFare.M_ETC_FARE);
 
                 if (AMBlestruct.AMReceiveFare.M_START_FARE != null) {
                     mfare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
@@ -396,55 +392,34 @@ public class AwindowService extends Service {
                 }
 
                 if (AMBlestruct.AMReceiveFare.M_STATE.equals("1")) {
-
-                    Log.d("meterHandler_mState", AMBlestruct.AMReceiveFare.M_STATE);
-
-//                    mfare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE + AMBlestruct.AMReceiveFare.M_CALL_FARE + AMBlestruct.AMReceiveFare.M_ETC_FARE);
-
                     int startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
                     int callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);
                     int etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);
 
                     mfare = startFare + callFare + etcFare;
 
-                    Log.d("m_Sate", mfare+"");
-
                     mCallback.serviceMeterState(AMBlestruct.MeterState.PAY, mfare);
 
                 }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("2")) {
-
-                    Log.d("meterHandler_mState", AMBlestruct.AMReceiveFare.M_STATE);
 
                     mCallback.serviceMeterState(AMBlestruct.MeterState.EMPTY, mfare);
 
                 }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("3")) {
 
-                    Log.d("meterHandler_mState", AMBlestruct.AMReceiveFare.M_STATE);
-
                     mCallback.serviceMeterState(AMBlestruct.MeterState.DRIVE, mfare);
 
                 }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("4")) {
 
-                    Log.d("meterHandler_mState", AMBlestruct.AMReceiveFare.M_STATE);
-
                     mCallback.serviceMeterState(AMBlestruct.MeterState.CALL, mfare);
-
                 }
                 //status: 빈차등 메뉴 수신값
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE) {
 
-                Log.d("meterHandler", AMBlestruct.AMReceiveMenu.MENU_OPEN+"");
-//                Log.d("meterHandler", AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE+""); //49 == 1
-                Log.d("meterHandler", AMBlestruct.AMReceiveMenu.MENU_MSG+"");
-
-//                List<String> list = new ArrayList<String>(Arrays.asList(AMBlestruct.AMReceiveMenu.MENU_MSG.split("\n")));
-
                 ArrayList<String> arrList = new ArrayList<>(Arrays.asList(AMBlestruct.AMReceiveMenu.MENU_MSG.split("\n")));
 
-                Log.d("arrList", arrList.toString());
-                Log.d("arrList", arrList.size()+"");
+//                Log.d("arrList", arrList.toString());
+//                Log.d("arrList", arrList.size()+"");
 
-//                mCallback.serviceMeterMenuState(arrList, arrList.size());
                 mCallback.serviceMeterMenuState(AMBlestruct.AMReceiveMenu.MENU_MSG);
 
             }
@@ -459,9 +434,10 @@ public class AwindowService extends Service {
         return true;
     }
 
-    public boolean menu_meterState(String requestCode) {
+    public boolean menu_meterState(String requestCode, String menuType) {
+        Log.d("requestCode>", requestCode+", "+menuType);
         if (amBluetoothManager != null) {
-            amBluetoothManager.menu_AMmeterState(requestCode);
+            amBluetoothManager.menu_AMmeterState(requestCode, menuType);
         }
         return true;
     }

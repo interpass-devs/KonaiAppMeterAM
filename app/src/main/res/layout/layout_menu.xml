@@ -2,23 +2,25 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
     android:background="@color/black">
+
 
     <TextView
         android:id="@+id/menu_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
+        android:gravity="center_horizontal|center"
         android:paddingLeft="10dip"
-        android:text="수신받은 메뉴내용"
+        android:text="메뉴 메세지"
         android:layout_weight="0.8"
         android:paddingTop="5dip"
         android:paddingRight="10dip"
         android:paddingBottom="8dip"
         android:textColor="#ffffffff"
         android:textSize="25dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:lines="1"/>
+
+        />
 
 </LinearLayout>

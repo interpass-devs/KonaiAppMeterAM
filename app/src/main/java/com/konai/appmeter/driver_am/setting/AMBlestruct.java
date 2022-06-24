@@ -13,7 +13,11 @@ public class AMBlestruct {
     public static final String APP_REQUEST_CODE = "15";  //요청코드 == 빈차등 미터기의 현재상태를 요청한다.
     public static final String METER_REQUEST_CODE = "19";  //응답코드
     public static final String APP_MENU_REQUEST_CODE = "41";
+    public static final String APP_MENU_CONTENTS_REQUEST_CODE = "43";
     public static final String METER_MENU_REQUEST_CODE = "42";
+    public static final String METER_MENU_INPUT_REQUEST_CODE = "46";  //빈차등 -> 앱으로 입력요청 (etc: 날짜입력..)
+    public static final String APP_MENU_INPUT_REQUEST_CODE = "47";  //앱 -> 빈차등으로 입력결과 전송
+
     //날짜시간
     public static String getCurDateString() {
         SimpleDateFormat format1 = new SimpleDateFormat ( "yyyyMMddHHmmss");
@@ -44,6 +48,16 @@ public class AMBlestruct {
         public static int MSG_CUR_BLE_STATE = 1;
         public static int MSG_CUR_AM_STATE = 2;
         public static int MSG_CUR_MENU_STATE = 3;
+        public static int MSG_CUR_INPUT_MENU_STATE = 4;
+    }
+
+    public static class MenuType {
+        public static String TYPE ="1";  //메세지종류(닫기/메뉴/정보출력/숫자키버튼) 또는 메세지방번호(리사이클러뷰)
+        public static String CLOSE = "0";  //메뉴닫기
+        public static String OPEN = "1";   //메뉴 메세지
+        public static String PRINT_INFO = "2";  //정보출력
+        public static String PRINT_BY_NUMBER = "3"; //정보출력 + 숫자키버튼 0-9
+        public static String MENU_CONTENT = "0";  //기능선택 (0-번호선택/ 1-이전(정정) /2-닫기)
     }
 
     //me: 빈차등 -> 앱
@@ -88,13 +102,7 @@ public class AMBlestruct {
         public static String MENU_RECEIVE_TIME; //날짜시간
         public static byte MENU_MSG_TYPE;    //메세지 종류
         public static String MENU_MSG;         //메뉴 메세지
-
-        //빈차등으로부터 수신받을 때
-        //전송 메뉴타입 값
-        public static final int MENU_CLOSE = 0;
-        public static final int MENU_OPEN = 1;
-        public static final int MENU_PRINT_INFO = 2;
-        public static final int MENU_PRINT_NUMPAD = 3;
+        public static String MENU_INPUT_TYPE;  //메뉴- 키패드 입력형식
 
     }
 
