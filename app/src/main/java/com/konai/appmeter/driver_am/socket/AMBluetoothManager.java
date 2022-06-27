@@ -374,11 +374,13 @@ public class AMBluetoothManager {
         makepacketsend(AMBlestruct.APP_REQUEST_CODE); //"15"
     }
 
-    public void menu_AMmeterState(String sstate, String menutype) {
+    public void menu_AMmeterState(String sstate, String menutype, String pos) {
         AMBlestruct.mSState = sstate;
         AMBlestruct.MenuType.TYPE = menutype;
 
-//        Log.d(log, "menu_request_code: "+sstate+" , "+menutype);
+        AMBlestruct.MenuType.MENU_CONTENT = pos;
+
+        Log.d(log, "menu_request_code: "+sstate+" , "+menutype+", pos: "+ pos+", AMBlestruct.MenuType.MENU_CONTENT: "+AMBlestruct.MenuType.MENU_CONTENT);
 
         makepacketsend(AMBlestruct.mSState);
     }
@@ -393,7 +395,7 @@ public class AMBluetoothManager {
 
         topkt.Setbyte(packetdata, (byte) 0x02);  //STX
 
-        Log.d(log, "makepacketsend=> "+requestCode+", "+AMBlestruct.mSState);
+        Log.d(log, "makepacketsend=> "+requestCode+", "+AMBlestruct.mSState+", "+AMBlestruct.MenuType.MENU_CONTENT);
 
         switch (requestCode) {
 
@@ -410,12 +412,12 @@ public class AMBluetoothManager {
                 break;
 
             case AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE:  //"43"
-                Log.d("check43-> ",AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE+", "+getCurDateString()+", "+AMBlestruct.MenuType.MENU_CONTENT+", "+AMBlestruct.MenuType.TYPE);
+//                Log.d("check43-> ",AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE+", "+getCurDateString()+", "+AMBlestruct.MenuType.MENU_CONTENT+", "+AMBlestruct.MenuType.TYPE);
                 topkt.SetString(packetdata, AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE);
                 topkt.SetString(packetdata, getCurDateString());
-                topkt.SetString(packetdata, AMBlestruct.MenuType.MENU_CONTENT);
-                topkt.SetString(packetdata, AMBlestruct.MenuType.TYPE);  //선택번호
-
+                topkt.SetString(packetdata, AMBlestruct.MenuType.TYPE);
+                topkt.SetString(packetdata, AMBlestruct.MenuType.MENU_CONTENT);  //선택번호
+                Log.d("check43-> ",AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE+", "+getCurDateString()+", "+AMBlestruct.MenuType.TYPE+", "+AMBlestruct.MenuType.MENU_CONTENT);
                 break;
 
         }
@@ -638,6 +640,9 @@ public class AMBluetoothManager {
                 AMBlestruct.AMReceiveFare.M_END_Y = outpkt.GetString(outdata, 14);  //하차좌표-Y
                 AMBlestruct.AMReceiveFare.M_START_DISTANCE = outpkt.GetString(outdata, 14);  //승차거리
                 AMBlestruct.AMReceiveFare.M_EMPTY_DISTANCE = outpkt.GetString(outdata, 14);  //빈차거리
+
+
+                Log.d("check_callFare", AMBlestruct.AMReceiveFare.M_CALL_FARE);
 
                 windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE);
 

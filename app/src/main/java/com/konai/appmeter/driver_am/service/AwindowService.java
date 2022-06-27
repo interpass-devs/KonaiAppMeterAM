@@ -74,6 +74,9 @@ public class AwindowService extends Service {
 
     private final IBinder m_ServiceBinder = new ServiceBinder();
     private int mfare = 0;
+    private int startFare = 0;
+    private int callFare = 0;
+    private int etcFare = 0;
 
 //    BlockingQueue<CalQueue> mCalblockQ = new ArrayBlockingQueue<CalQueue>(10);
 
@@ -99,7 +102,7 @@ public class AwindowService extends Service {
     // Activity 에서 정의해 해당 서비스와 통신 할 함수를 추상함수로 정의
     public interface mainCallBack {
         void serviceBleStatus(boolean bleStatus);  //블루투스 수신상태
-        void serviceMeterState(int btnType, int mFare);  //미터기 버튼 수신상태
+        void serviceMeterState(int btnType, int mFare, int startFare, int callFare, int etcFare);  //미터기 버튼 수신상태
         void serviceMeterMenuState(String menuMsg);  //미터기 메뉴 수신상태
 //        void serviceMeterMenuState(ArrayList<String> arrayList, int listsize);
     }
@@ -118,7 +121,7 @@ public class AwindowService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         amBluetoothManager = new AMBluetoothManager(this, AwindowService.this);
-        ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
 //        ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN);
 //        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
 
@@ -311,7 +314,6 @@ public class AwindowService extends Service {
 //            Log.d("start_scan_device", "isEnabled");  //y
 //            Log.d("start_scan_device", setting.BLUETOOTH_DEVICE_NAME); //null
 
-
             //me: new
             startPairingBluetooth();
 
@@ -320,7 +322,7 @@ public class AwindowService extends Service {
 
 
     private void startPairingBluetooth() {
-
+        /**
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -331,6 +333,7 @@ public class AwindowService extends Service {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        **/
         bluetoothDeviceSet = mBluetoothAdapter.getBondedDevices();
 
         for (BluetoothDevice device : bluetoothDeviceSet) {
@@ -356,6 +359,8 @@ public class AwindowService extends Service {
     public boolean connectAM() {
 
         if (amBluetoothManager != null) {
+
+            Log.d("deviceList_","connectAM");
 
             amBluetoothManager.connectAM();
         }else {
@@ -392,25 +397,27 @@ public class AwindowService extends Service {
                 }
 
                 if (AMBlestruct.AMReceiveFare.M_STATE.equals("1")) {
-                    int startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
-                    int callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);
-                    int etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);
+                    startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
+                    callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);
+                    etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);
+
+                    Log.d("check_callFare-2", callFare+"");
 
                     mfare = startFare + callFare + etcFare;
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.PAY, mfare);
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.PAY, mfare, startFare, callFare, etcFare);
 
                 }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("2")) {
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.EMPTY, mfare);
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.EMPTY, mfare, startFare, callFare, etcFare);
 
                 }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("3")) {
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.DRIVE, mfare);
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.DRIVE, mfare, startFare, callFare, etcFare);
 
                 }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("4")) {
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.CALL, mfare);
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.CALL, mfare, startFare, callFare, etcFare);
                 }
                 //status: 빈차등 메뉴 수신값
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE) {
@@ -434,10 +441,10 @@ public class AwindowService extends Service {
         return true;
     }
 
-    public boolean menu_meterState(String requestCode, String menuType) {
+    public boolean menu_meterState(String requestCode, String menuType, String pos) {
         Log.d("requestCode>", requestCode+", "+menuType);
         if (amBluetoothManager != null) {
-            amBluetoothManager.menu_AMmeterState(requestCode, menuType);
+            amBluetoothManager.menu_AMmeterState(requestCode, menuType, pos);
         }
         return true;
     }

@@ -2,6 +2,7 @@ package com.konai.appmeter.driver_am.view;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -96,7 +97,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void serviceMeterState(int btnType, int mFare) {
+        public void serviceMeterState(int btnType, int mFare, int startFare, int callFare, int etcFare ) {
+
+            Log.d("check_call-3", callFare+"");  //null
 
             long value = Long.parseLong(mFare + "");
             DecimalFormat format = new DecimalFormat("###,###");
@@ -126,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (btnType == AMBlestruct.MeterState.CALL) {
                 btn_call.performClick();
                 btn_main_status.setText("호출");
+                tv_rescall_pay.setText(callFare);
             }
         }
 
@@ -147,7 +151,8 @@ public class MainActivity extends AppCompatActivity {
                 public void onItemClick(View v, int pos) {
                      //me: 앱 -> 빈차등
                     // 메뉴목록 선택시 빈차등수신요청..
-                    windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, pos+"");  //"43", 선택목록번호
+                    AMBlestruct.MenuType.MENU_CONTENT = pos+"";
+                    windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
                 }
             });
 
@@ -229,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -246,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
         locationPermission();
 
         //블루투스 연결 권한
-        bleConnPermission();  //여기서 권한 설정이 안됨.. 이유모름. 그래서 onResume()에서 다시 해줌.
+//        bleConnPermission();  //여기서 권한 설정이 안됨.. 이유모름. 그래서 onResume()에서 다시 해줌.
 
 
         setting.APP_VERSION = Double.parseDouble(BuildConfig.VERSION_NAME);
@@ -300,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         //블루투스 연결 권한
-        bleConnPermission();
+//        bleConnPermission();
 
 //        if (windowService != null) {
 //            Log.d(log_, "onResume");
@@ -311,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
 
     //위치권한데 대한 동적퍼미션 작업 (Location permission)
     public void locationPermission() {
-        String permission = Manifest.permission.ACCESS_FINE_LOCATION;
+        String permission = Manifest.permission.ACCESS_COARSE_LOCATION;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {  //23
             if (checkSelfPermission(permission) == PackageManager.PERMISSION_DENIED) {
                 requestPermissions(new String[]{permission}, ACCESS_FINE_LOCATION_DENIED);
@@ -321,13 +327,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public void bleConnPermission() {
+        Log.d("bleconn", "bleconn");
         String ble_conn_permission = Manifest.permission.BLUETOOTH_CONNECT;
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { //31
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { //21
+            Log.d("bleconn--",Build.VERSION.SDK_INT+"");
+            Log.d("bleconn", "bleconn_lollipop");
             if (checkSelfPermission(ble_conn_permission) == PackageManager.PERMISSION_DENIED) {
                 requestPermissions(new String[]{ble_conn_permission}, BLUETOOTH_CONNECT_DENIED);
             }
+        }else {
+            Log.d("bleconn", "bleconn_lollipop-else");
         }
     }
 
@@ -557,7 +569,7 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.close_menu_btn:  //메뉴-이전버튼
                     //me: 앱 -> 빈차등
                     AMBlestruct.MenuType.MENU_CONTENT = "2";
-                    windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT); //닫기
+                    windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,""); //닫기
                     main_all_layout.setVisibility(View.VISIBLE);
                     menu_main_layout.setVisibility(View.GONE);  //status:  닫기 수신번호가 잘 왔을 때 설정..  !!!!!!!!!!!!
                     main_layout.setVisibility(View.VISIBLE);  //빈차화면
@@ -565,7 +577,7 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.back_menu_btn:
                     //me: 앱 -> 빈차등
                     AMBlestruct.MenuType.MENU_CONTENT = "1";
-                    windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT); //이전(정정)
+                    windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,""); //이전(정정)
                     break;
 
             }
@@ -648,7 +660,7 @@ public class MainActivity extends AppCompatActivity {
                     add_fare_frame_layout.setVisibility(View.GONE);
                     setEmptyStatus(btn_empty, btn_drive, btn_call, btn_pay);
                     //me: 버튼 -> 빈차등
-                    windowService.menu_meterState(AMBlestruct.APP_MENU_REQUEST_CODE, AMBlestruct.MenuType.OPEN);
+                    windowService.menu_meterState(AMBlestruct.APP_MENU_REQUEST_CODE, AMBlestruct.MenuType.OPEN,"");
 //                    Intent i = new Intent(mContext, AMMenuActivity.class);
 //                    startActivity(i);
                     break;
