@@ -2,10 +2,13 @@ package com.konai.appmeter.driver_am.adapter;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,11 +74,17 @@ public class MenuAdapter extends RecyclerView.Adapter {
         vh.menu_text.setText(items.get(position));
 
         if (position == 0) {
-//            vh.menu_text.setTypeface(vh.menu_text.getTypeface(), Typeface.BOLD);
             vh.menu_text.setTextSize(4.0f * 8);
+            vh.menu_text.setGravity(Gravity.CENTER);
         }else {
             //do nothing
         }
+
+//        if (items.size() == 1) {
+//            vh.numberPadLayout.setVisibility(View.VISIBLE);
+//        }else {
+//            vh.numberPadLayout.setVisibility(View.GONE);
+//        }
     }
 
     @Override
@@ -85,21 +94,29 @@ public class MenuAdapter extends RecyclerView.Adapter {
 
     class VH extends RecyclerView.ViewHolder {
         TextView menu_text;
+//        LinearLayout numberPadLayout;
 
         public VH(@NonNull View itemView) {
             super(itemView);
             menu_text = itemView.findViewById(R.id.menu_text);
-
-
+//            numberPadLayout = itemView.findViewById(R.id.numberPadLayout);
 
             itemView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     int post = getLayoutPosition();
+
                     if (post != RecyclerView.NO_POSITION) {
-                        if (mTouchListener != null) {
-                            mTouchListener.onItemTouch(v, post, event);
+                        if (post == 0) {
+                            //do nothing
+                            //제목은 터치 못하게하기
+                        }else {
+                            if (mTouchListener != null) {
+                                mTouchListener.onItemTouch(v, post, event);
+                            }
                         }
+
+
                     }
                     return false;
                 }
@@ -110,10 +127,17 @@ public class MenuAdapter extends RecyclerView.Adapter {
                 @Override
                 public void onClick(View v) {
                     int position = getLayoutPosition();
+
                     if (position != RecyclerView.NO_POSITION) {
-                        if (mListener != null) {
-                            mListener.onItemClick(v, position);
+                        if (position == 0) {
+                            //do nothing
+                            //제목은 클릭 못하게하기
+                        }else {
+                            if (mListener != null) {
+                                mListener.onItemClick(v, position);
+                            }
                         }
+
                     }
                 }
             });

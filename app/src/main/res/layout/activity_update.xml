@@ -11,7 +11,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="220dp"
         android:orientation="vertical"
         android:layout_margin="50dp"
         android:background="@color/white"
@@ -21,27 +21,20 @@
             android:id="@+id/updateText"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:gravity="center_vertical|top"
+            android:gravity="center|top"
             android:text="업데이트 건이 있습니다.\n아아아아"
             android:textColor="@color/black"
             android:textSize="25dp"/>
-        <com.konai.appmeter.driver_am.util.FontFitTextView
+        <TextView
             android:id="@+id/appVersion"
             android:layout_weight="0.3"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:gravity="right"
             android:text="다운로드 크기: 11 MB/   앱버전: 0.2"
             android:textColor="@color/grey_light"
-            android:textSize="25dp"/>
-        <TextView
-            android:layout_weight="1.5"
-            android:id="@+id/updateMsg"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:gravity="center_vertical"
-            android:text="업데이트 건이 있습니다.\n아아아아"
-            android:textColor="@color/black"
-            android:textSize="20dp"/>
+            android:textSize="15dp"
+            android:layout_marginRight="5dp"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
@@ -54,21 +47,14 @@
                 android:textColor="@color/white"
                 android:background="#148A7F"/>
             <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:text="취소"
-                android:textColor="#148A7F"
-                android:background="@color/white"
-                android:padding="10dp"/>
-            <com.konai.appmeter.driver_am.util.ButtonFitText
                 android:id="@+id/downbtn"
                 android:layout_weight="1"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:text="업데이트"
+                android:text="확인"
                 android:textColor="@color/white"
-                android:background="#148A7F"/>
+                android:background="@drawable/green_btn"
+                android:padding="10dp"/>
         </LinearLayout>
 
     </LinearLayout>

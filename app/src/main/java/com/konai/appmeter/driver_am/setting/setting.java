@@ -12,6 +12,7 @@ public class setting {
     public static int gOrient;
     public static boolean gUseBLE = true;
     public static boolean BLE_STATE = false;
+    public static boolean OVERLAY = false;
 //    public static LocService m_Service = null;
     public static AwindowService windowService = null;
     public static boolean bOverlaymode = true; //사용유무.

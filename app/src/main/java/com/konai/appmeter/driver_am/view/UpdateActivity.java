@@ -37,6 +37,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -48,7 +49,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     Context mContext;
     String mdn, carNum, mirrorappUpdate, strAppVersion;
     TextView updateText, updateMsg;
-    FontFitTextView appVersion;
+    TextView appVersion;
 
     String File_Name = "app-debug.apk";   //확장자를 포함한 파일명
     String File_extend = "apk";  //확장자명
@@ -58,7 +59,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     String Save_folder = "/mydown";
 
     ProgressBar loadingBar;
-    DownloadThread dThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +69,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
         appVersion = findViewById(R.id.appVersion);
         updateText = findViewById(R.id.updateText);
-        updateMsg = findViewById(R.id.updateMsg);
         mainBtn = findViewById(R.id.moveToMainActivity);
         mainBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,6 +85,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         StrictMode.setVmPolicy(builder.build());
 
         //먼저 업데이트가 있는지 확인
+        //서버에서 jsonData를 불러온다.
         Thread NetworkThread = new Thread(new NetworkThread());
         NetworkThread.start();
 
@@ -97,11 +97,8 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
         if (mirrorappUpdate != null) {
             if (mirrorappUpdate.equals("Y")) {
-                updateText.setText("AppMeter앱을\n업데이트하시겠습니까?");
-                appVersion.setText("다운로드 크기: 11MB/  앱버전: "+strAppVersion);
-                updateMsg.setText("앱을 최신 버전으로 업데이트 할 것을 권장합니다.\n업데이트 버튼을 눌러주세요.");
-            }else {
-                updateText.setText("업데이트 건이 없습니다.");
+                updateText.setText("앱업데이트 진행을위해\n확인버튼을 눌러주세요.");
+                appVersion.setText("앱버전:  v"+strAppVersion);
             }
         }
 
@@ -113,12 +110,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
         loadingBar = (ProgressBar) findViewById(R.id.Loading);
 
-        // 다운로드 경로를 외장메모리 사용자 지정 폴더로 함.
-        String ext = Environment.getExternalStorageState();
-        if (ext.equals(Environment.MEDIA_MOUNTED)) {
-            Save_Path = Environment.getExternalStorageDirectory()
-                    .getAbsolutePath() + Save_folder;
-        }
     }//onCreate
 
 
@@ -127,23 +118,9 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     public void onClick(View v) {
 
         if (v.getId() == R.id.downbtn) {
-            Toast.makeText(mContext, "click up", Toast.LENGTH_SHORT).show();
-            File dir = new File(Save_Path);
-            // 폴더가 존재하지 않을 경우 폴더를 만듦
-            if (!dir.exists()) {
-                dir.mkdir();
-            }
-
-            // 다운로드 폴더에 동일한 파일명이 존재하는지 확인해서
-            // 없으면 다운받고 있으면 해당 파일 실행시킴.
-            if (new File(Save_Path + "/" + File_Name).exists() == false) {
-                loadingBar.setVisibility(View.VISIBLE);
-                dThread = new DownloadThread(fileURL + "/" + File_Name,
-                        Save_Path + "/" + File_Name);
-                dThread.start();
-            } else {
-                showDownloadFile();
-            }
+//
+            loadingBar.setVisibility(View.VISIBLE);
+            new Thread(new UpdateThread()).start();
         }
 
     }//onClick
@@ -222,73 +199,96 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
 
 
-
-    class DownloadThread extends Thread {
-        String ServerUrl;
-        String LocalPath;
-
-        DownloadThread(String serverPath, String localPath) {
-            ServerUrl = serverPath;
-            LocalPath = localPath;
-        }
+    class UpdateThread implements Runnable {
 
         @Override
         public void run() {
-            URL imgurl;
-            int Read;
-            try {
-                imgurl = new URL(ServerUrl);
-                HttpURLConnection conn = (HttpURLConnection) imgurl
-                        .openConnection();
-                int len = conn.getContentLength();
-                byte[] tmpByte = new byte[len];
-                InputStream is = conn.getInputStream();
-                File file = new File(LocalPath);
-                FileOutputStream fos = new FileOutputStream(file);
-                for (;;) {
-                    Read = is.read(tmpByte);
-                    if (Read <= 0) {
-                        break;
-                    }
-                    fos.write(tmpByte, 0, Read);
-                }
-                is.close();
-                fos.close();
-                conn.disconnect();
+            update();
+        }
+    }
 
-            } catch (MalformedURLException e) {
-                Log.e("ERROR1", e.getMessage());
-            } catch (IOException e) {
-                Log.e("ERROR2", e.getMessage());
-                e.printStackTrace();
+
+    public void update() {
+
+        try {
+
+            String url = fileURL;
+            URLConnection conn = new URL(url).openConnection();
+            InputStream in = conn.getInputStream();
+
+            int len = 0, total = 0;
+            byte[] buf = new byte[2048];
+
+            File path = getFilesDir();
+            File apk = new File(path, File_Name);
+
+            if (apk.exists()) {
+                apk.delete();
             }
-            mAfterDown.sendEmptyMessage(0);
+            apk.createNewFile();
+
+            //다운로드
+            FileOutputStream fos = new FileOutputStream(apk);
+
+            while ((len = in.read(buf, 0, 2048)) != -1) {
+                total += len;
+                fos.write(buf,0,len);
+            }
+            in.close();
+
+            fos.flush();
+            fos.close();
+
+        }catch (Exception e) {
+            Log.d("update_error", "update_error: "+e.toString());
+
+            e.printStackTrace();
+
+            return;
+        }
+
+        File paths = getFilesDir();
+        File apkFile = new File(paths, File_Name);
+
+        if (apkFile != null) {
+
+            if (Build.VERSION.SDK_INT >= 24) {
+                //install app
+                installApk(apkFile);
+
+            }else {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
+                startActivity(intent);
+
+                loadingBar.setVisibility(View.GONE);
+
+                Intent i = new Intent(this, MainActivity.class);
+                startActivity(i);
+            }
         }
     }
 
-    Handler mAfterDown = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            // TODO Auto-generated method stub
-            loadingBar.setVisibility(View.GONE);
-            // 파일 다운로드 종료 후 다운받은 파일을 실행시킨다.
-            showDownloadFile();
-        }
 
-    };
 
-    private void showDownloadFile() {
+    public void installApk(File file) {
+        Uri fileUri = FileProvider.getUriForFile(this.getApplicationContext(), this.getApplicationContext().getPackageName() + ".fileprovider", file);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(fileUri,"application/vnd.android.package-archive");
 
-        Intent intent = new Intent();
-        intent.setAction(android.content.Intent.ACTION_VIEW);
-        File file = new File(Save_Path + "/" + File_Name);
-
-        // 파일 확장자 별로 mime type 지정해 준다.
-        if (File_extend.equals("apk")) {
-            intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive/*");
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        }
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         startActivity(intent);
+//        finish();
+
+//        loadingBar.setVisibility(View.GONE);
+
+
+        Intent i = new Intent(this, MainActivity.class);
+        startActivity(i);
+
     }
+
+
 
 }//Activity

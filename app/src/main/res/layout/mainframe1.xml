@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:background="@color/black">
+    android:background="@drawable/yellow_line_black_background">
 
     <!--빈차등 매뉴화면-->
     <LinearLayout
@@ -87,7 +87,8 @@
             android:layout_weight="0.5"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingTop="10dp">
             <LinearLayout
                 android:layout_weight="1"
                 android:layout_width="0dp"
@@ -166,7 +167,7 @@
                 android:textColor="@color/orange"/>
 
             <com.konai.appmeter.driver_am.util.FontFitTextView
-                android:visibility="invisible"
+                android:visibility="gone"
                 android:id="@+id/ntv_rescallpay"
                 android:layout_weight="1"
                 android:layout_width="match_parent"

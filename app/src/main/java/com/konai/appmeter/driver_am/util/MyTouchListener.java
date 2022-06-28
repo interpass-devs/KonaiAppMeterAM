@@ -49,27 +49,31 @@ public class MyTouchListener implements View.OnTouchListener {
             /*frame3 메인상단버튼*/
             case R.id.nbtn_menu:  //메뉴 btn
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    v.setBackgroundResource(R.drawable.grey_selected_btn);
+//                    v.setBackgroundResource(R.drawable.grey_selected_btn);
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    v.setBackgroundResource(R.drawable.grey_gradi_btn);
+                    v.setBackgroundResource(R.drawable.grey_gradi_btn_rec);
                 }
                 break;
             case R.id.nbtn_complex:  //복합 btn
+                /**
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     v.setBackgroundResource(R.drawable.grey_selected_btn);
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     v.setBackgroundResource(R.drawable.grey_gradi_btn);
                 }
+                 **/
                 break;
             case R.id.nbtn_login:  //로그인 btn
+                /**
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     v.setBackgroundResource(R.drawable.grey_selected_btn);
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     v.setBackgroundResource(R.drawable.grey_gradi_btn);
                 }
+                **/
                 break;
             case R.id.nbtn_arrived:  //도착 btn
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -84,7 +88,7 @@ public class MyTouchListener implements View.OnTouchListener {
                     v.setBackgroundResource(R.drawable.grey_selected_btn);
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    v.setBackgroundResource(R.drawable.grey_gradi_btn);
+                    v.setBackgroundResource(R.drawable.grey_gradi_btn_rec);
                 }
                 break;
         }

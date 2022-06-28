@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KonaiAppMeterAM</string>
+    <string name="app_name">앱미터</string>
     <string name="menu_drawer_open">Drawer Open</string>
     <string name="menu_drawer_close">Drawer Close</string>
     <string name="info_permission_overlay">다른화면위에 그리기라는 권한이 필요합니다.</string>

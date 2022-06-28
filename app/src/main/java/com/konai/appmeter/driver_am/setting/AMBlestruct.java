@@ -92,7 +92,7 @@ public class AMBlestruct {
         public static final int PAY = 1;  //지불
         public static final int EMPTY = 2; //빈차
         public static final int DRIVE = 3; //주행
-        public static final int CALL = 4;  //할증
+        public static final int CALL = 4;  //호출
     }
 
 

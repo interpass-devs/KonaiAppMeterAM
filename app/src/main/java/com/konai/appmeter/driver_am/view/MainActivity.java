@@ -4,9 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
@@ -16,6 +19,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -31,12 +35,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.konai.appmeter.driver_am.BuildConfig;
 import com.konai.appmeter.driver_am.adapter.MenuAdapter;
 import com.konai.appmeter.driver_am.R;
@@ -49,11 +55,28 @@ import com.konai.appmeter.driver_am.socket.AMBluetoothManager;
 import com.konai.appmeter.driver_am.util.ButtonFitText;
 import com.konai.appmeter.driver_am.util.FontFitTextView;
 import com.konai.appmeter.driver_am.util.MyTouchListener;
+
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
+
+    private String updateVersion, mdn, carNum, mirrorappUpdate;
+    private String appVersion;
+    private String resultData = "";
+    String File_Name = "app-debug.apk";   //확장자를 포함한 파일명
+    String fileURL = "http://175.125.20.72:8080/update/app-debug.apk"; // URL: 웹서버 쪽 파일이 있는 경로
 
     private BackPressedKeyHandler backKeyHandler = new BackPressedKeyHandler(this);
 
@@ -70,12 +93,12 @@ public class MainActivity extends AppCompatActivity {
     private int connectionState = STATE_DISCONNECTED;
     private static final int STATE_DISCONNECTED = 0;
     public static AwindowService windowService = null;
-    String log_ = "log_mainActivity";
+    private String log_ = "log_mainActivity";
     private Context mContext;
     private MyTouchListener mTouchListener;
     private View viewframe1, viewframe2, viewframe3, viewframe4, viewframe5;
     private FrameLayout frame1, frame2, frame3, frame4, frame5;
-    private LinearLayout main_layout, menu_layout, menu_main_layout, main_all_layout ,radio_button_layout, main_btn_layout, add_fare_frame_layout, number_pad_frame_layout, menu_list_layout;
+    private LinearLayout main_layout, menu_layout, numberPadLayout, menu_main_layout, main_all_layout, radio_button_layout, main_btn_layout, number_pad_layout, add_fare_frame_layout, number_pad_frame_layout, menu_list_layout;
     private MenuAdapter menuAdapter;
     private RecyclerView menuRecyclerView;
     private TextView menu_text;
@@ -84,8 +107,9 @@ public class MainActivity extends AppCompatActivity {
     private ButtonFitText btn_empty, btn_drive, btn_call, btn_pay;
     private ImageView iv_ble;
     private FontFitTextView tv_night_status, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status, menu_title;
-    private Boolean menuClicked = true;
-    private RadioButton btn_close, btn_ok;
+    private Boolean menuClicked, isDrivedClicked = false;
+    private ButtonFitText btn_close, btn_ok;
+    private Intent enableIntent;
 
 
     private AwindowService.mainCallBack mCallback = new AwindowService.mainCallBack() {
@@ -97,9 +121,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void serviceMeterState(int btnType, int mFare, int startFare, int callFare, int etcFare ) {
+        public void serviceMeterState(int btnType, int mFare, int startFare, int callFare, int etcFare) {
 
-            Log.d("check_call-3", callFare+"");  //null
+            AMBlestruct.AMReceiveFare.M_CALL_FARE = callFare + "";
+
+            if (!AMBlestruct.AMReceiveFare.M_CALL_FARE.equals("0")) {
+                tv_rescall_pay.setVisibility(View.VISIBLE);
+                tv_rescall_pay.setText("호출 " + AMBlestruct.AMReceiveFare.M_CALL_FARE);
+            } else {
+                tv_rescall_pay.setVisibility(View.GONE);
+            }
+
 
             long value = Long.parseLong(mFare + "");
             DecimalFormat format = new DecimalFormat("###,###");
@@ -110,10 +142,9 @@ public class MainActivity extends AppCompatActivity {
             if (btnType == AMBlestruct.MeterState.PAY) {
                 btn_pay.performClick();
                 btn_main_status.setText("지불");
-                btn_main_status.setTextColor(getResources().getColor(R.color.light_orange));
+                btn_main_status.setTextColor(getResources().getColor(R.color.orange));
 
             } else if (btnType == AMBlestruct.MeterState.EMPTY) {
-                Log.d("빈차","빈차");
                 menu_main_layout.setVisibility(View.GONE);
                 main_all_layout.setVisibility(View.VISIBLE);
                 main_layout.setVisibility(View.VISIBLE);
@@ -126,59 +157,75 @@ public class MainActivity extends AppCompatActivity {
                 btn_main_status.setText("주행");
                 btn_main_status.setTextColor(getResources().getColor(R.color.yellow));
 
-            } else if (btnType == AMBlestruct.MeterState.CALL) {
+            } else if (btnType == AMBlestruct.MeterState.CALL) {  //호출대신 주행이 불려짐.. i don't know why.
                 btn_call.performClick();
                 btn_main_status.setText("호출");
-                tv_rescall_pay.setText(callFare);
+                tv_rescall_pay.setVisibility(View.VISIBLE);
+                tv_rescall_pay.setText(AMBlestruct.AMReceiveFare.M_CALL_FARE);
             }
         }
 
         //메뉴 빈차등 수신요청.. -> windowService에 넘겨줌
         @Override
-        public void serviceMeterMenuState(String menuMsg) {
+        public void serviceMeterMenuState(String menuMsg, int menuType) {
 
+            //빈차등에서 메뉴 -> 빈차 클릭시 = 초기화시킴
+            if (menuType == 48) {
+                Log.d("menuType@@", menuType+"");
+                main_all_layout.setVisibility(View.VISIBLE);
+                main_layout.setVisibility(View.VISIBLE);
+                menu_main_layout.setVisibility(View.GONE);
+                numberPadLayout.setVisibility(View.GONE);
+                add_fare_frame_layout.setVisibility(View.VISIBLE);
+            }
+
+            //받아온 빈차등 메뉴 리스트
             ArrayList<String> menuList = new ArrayList<>(Arrays.asList(menuMsg.split("\n")));
-
             Log.d("menulist", menuList.toString());
-            Log.d("menulist", menuList.size()+"");
+            Log.d("menulist", menuList.size() + "");
 
             menuAdapter = new MenuAdapter(MainActivity.this, menuList);
             menuRecyclerView.setAdapter(menuAdapter);
 
-            //메뉴어뎁터 클릭리스너
-            menuAdapter.setmListener(new MenuAdapter.onItemClickListener() {
-                @Override
-                public void onItemClick(View v, int pos) {
-                     //me: 앱 -> 빈차등
-                    // 메뉴목록 선택시 빈차등수신요청..
-                    AMBlestruct.MenuType.MENU_CONTENT = pos+"";
-                    windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
-                }
-            });
+            if (menuList.size() == 1) {
+                //메뉴 리스트가 1일땐 -> 제목으로 (ex; [메인메뉴])
+                //클릭 안되게 설정
+                //숫자입력패드 보이기
+                numberPadLayout.setVisibility(View.VISIBLE);
+            }else {
+                numberPadLayout.setVisibility(View.GONE);
+                //메뉴어뎁터 클릭리스너
+                menuAdapter.setmListener(new MenuAdapter.onItemClickListener() {
+                    @Override
+                    public void onItemClick(View v, int pos) {
+                        //me: 앱 -> 빈차등
+                        // 메뉴목록 선택시 빈차등수신요청..
+                        AMBlestruct.MenuType.MENU_CONTENT = pos + "";
+                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
+                    }
+                });
+                //메뉴어뎁터 터치리스너
+                menuAdapter.setmTouchListener(new MenuAdapter.onItemTouchListener() {
+                    @Override
+                    public void onItemTouch(View v, int pos, MotionEvent event) {
+                        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                            v.setBackgroundResource(R.drawable.yellow_selected_btn);
+                        }
+                        if (event.getAction() == MotionEvent.ACTION_UP) {
+                            v.setBackgroundColor(getResources().getColor(R.color.main_background));
+                        }
+                    }
+                });
+            }
 
-            //메뉴어뎁터 터치리스너
-            menuAdapter.setmTouchListener(new MenuAdapter.onItemTouchListener() {
-                @Override
-                public void onItemTouch(View v, int pos, MotionEvent event) {
-                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        v.setBackgroundResource(R.drawable.yellow_selected_btn);
-                    }
-                    if (event.getAction() == MotionEvent.ACTION_UP) {
-                        v.setBackgroundColor(getResources().getColor(R.color.black));
-                    }
-                }
-            });
+
         }
     };
 
 
-
-
-
-
-
     public void display_bleStatus(boolean ble) {
         if (ble == true) {
+            Log.d("bleconnnn", "bleconnnn");
             iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
             Toast.makeText(MainActivity.this, "빈차등 연결 성공", Toast.LENGTH_SHORT).show();
         } else {
@@ -186,32 +233,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //총 요금
     public void display_Runstate(String mFare) {
+//        tv_total_pay.setTextSize(4.0f * 2);
         tv_total_pay.setText(mFare);
     }
 
-    Handler displayHandler = new Handler() {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-
-            Log.d("log_", "displayHandler- " + msg);
-
-//            super.handleMessage(msg);
-
-            switch (msg.what) {
-                case 12:
-                    switch (AMBlestruct.AMReceiveFare.M_STATE) {
-                        case "1":
-                            Log.d(log_+"displayHandler_1", "1");
-                            break;
-                        case "2":
-                            Log.d(log_+"displayHandler_2", "2");
-                            break;
-                    }
-                    break;
-            }
-        }
-    };
 
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -240,59 +267,252 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         mContext = this;
 
-        //me: 권한설정
-
-        //앱위에그리기 권한
-        oerlayPermission();
-
-        //위치권한
-        locationPermission();
-
-        //블루투스 연결 권한
-//        bleConnPermission();  //여기서 권한 설정이 안됨.. 이유모름. 그래서 onResume()에서 다시 해줌.
-
-
-        setting.APP_VERSION = Double.parseDouble(BuildConfig.VERSION_NAME);
-
-//        if(windowService == null) {
-//            bindService(new Intent(getApplicationContext(),
-//                    AwindowService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
-//        }
-
-
-
-
-
-
-
-
-        //me:[블루투스 페어링 연결 설정]
+        //앱버전 체크
+        appVersion = getVersionInfo(getApplicationContext());
 
         //블루투스 관리자객체 소환
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
+        /**
+        //업데이트버전 체크
+        Thread NetworkThread = new Thread(new NetworkThread());
+        NetworkThread.start();
 
-        //블루투스 활성화 (블루투스가 켜져있는지 확인)
-        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-            Toast.makeText(MainActivity.this, "이 기기에는 블루투스가 없습니다.", Toast.LENGTH_SHORT).show();
-            //블루투스 장치 On 하는 화면실행
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-        } else {
-            //me: 기기검색 실행코드
-            //status -- AWindowService 클래스에서 연결해주고 있음..
-
+        try {
+            NetworkThread.join();
+        }catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
+        try {
+            if (mirrorappUpdate != null) {
+                if (mirrorappUpdate.equals("Y")) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                    builder.setTitle("앱업데이트 진행을 위해\n확인버튼을 눌러주세요.");
+                    builder.setMessage("현재버전: "+appVersion+" -> 새버전: "+updateVersion);
+                    builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
 
-        viewFrameVariablesConfiguration();
+                            //파일 다운로드
+                            new Thread(new UpdateThread()).start();
 
+                            goMain();
+
+                        }
+                    });
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.setCancelable(false);
+                    alertDialog.show();
+                }else { //"N"
+                    finish();  //앱종료
+                }
+            }else {
+                goMain();
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+**/
+
+    goMain();
 
     }//onCreate
 
+
+
+    private void goMain() {
+        //위치권한
+        locationPermission();
+
+        /**
+         //블루투스 활성화 (블루투스가 켜져있는지 확인)
+         if (mBluetoothAdapter == null | !mBluetoothAdapter.isEnabled()) {
+         Toast.makeText(MainActivity.this, "현재 블루투스가 비활성 상태입니다.", Toast.LENGTH_SHORT).show();
+         //블루투스 활성화
+         Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+         startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+         } else {
+         //me: 기기검색 실행코드
+         //status -- AWindowService 클래스에서 연결해주고 있음..
+         }
+         **/
+
+        //앱위에그리기 권한
+        oerlayPermission();
+
+        //뷰 아이디 찾기
+        viewFrameVariablesConfiguration();
+    }
+
+
+    class UpdateThread implements Runnable {
+
+        @Override
+        public void run() {
+            update();
+        }
+    }
+
+
+    public void update() {
+
+        try {
+
+            String url = fileURL;
+            URLConnection conn = new URL(url).openConnection();
+            InputStream in = conn.getInputStream();
+
+            int len = 0, total = 0;
+            byte[] buf = new byte[2048];
+
+            File path = getFilesDir();
+            File apk = new File(path, File_Name);
+
+            if (apk.exists()) {
+                apk.delete();
+            }
+            apk.createNewFile();
+
+            //다운로드
+            FileOutputStream fos = new FileOutputStream(apk);
+
+            while ((len = in.read(buf, 0, 2048)) != -1) {
+                total += len;
+                fos.write(buf,0,len);
+            }
+            in.close();
+
+            fos.flush();
+            fos.close();
+
+        }catch (Exception e) {
+            Log.d("update_error", "update_error: "+e.toString());
+
+            e.printStackTrace();
+
+            return;
+        }
+
+        File paths = getFilesDir();
+        File apkFile = new File(paths, File_Name);
+
+        if (apkFile != null) {
+
+            if (Build.VERSION.SDK_INT >= 24) {
+                //install app
+                installApk(apkFile);
+
+            }else {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
+                startActivity(intent);
+
+//                loadingBar.setVisibility(View.GONE);
+
+                Intent i = new Intent(this, MainActivity.class);
+                startActivity(i);
+            }
+        }
+    }
+
+    public void installApk(File file) {
+        Uri fileUri = FileProvider.getUriForFile(this.getApplicationContext(), this.getApplicationContext().getPackageName() + ".fileprovider", file);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(fileUri,"application/vnd.android.package-archive");
+
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
+//        finish();
+
+//        loadingBar.setVisibility(View.GONE);
+
+        Intent i = new Intent(this, MainActivity.class);
+        startActivity(i);
+    }
+
+    public String getVersionInfo(Context context) {
+        String version = null;
+        try {
+            PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            version = info.versionName;
+        }catch (PackageManager.NameNotFoundException e) {}
+        return version;
+    }
+
+
+    class NetworkThread implements Runnable {
+
+        @Override
+        public void run() {
+
+            HttpURLConnection conn = null;
+            StringBuilder jasonData = new StringBuilder();
+
+            try {
+
+                URL url = new URL("http://175.125.20.72:33030/querymirrorapp?mdn=01236461422");
+                conn = (HttpURLConnection) url.openConnection();
+
+                Log.d("resultData-url", url.toString());
+
+                if (conn != null) {
+                    conn.setConnectTimeout(2000);
+                    conn.setUseCaches(false);
+
+                    if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                        BufferedReader br = new BufferedReader(
+                                new InputStreamReader((conn.getInputStream()), "UTF-8"));
+
+                        for (;;) {
+                            String line = br.readLine();
+
+                            if (line == null) {
+                                break;
+                            }
+                            jasonData.append(line + "\n");
+                        }
+                        br.close();
+                    }
+                    conn.disconnect();
+
+                    resultData = jasonData.toString();
+                    Log.d("resultData-1", resultData);
+
+                    //특정 파라미터 얻기
+                    try {
+                        JSONObject jsonObject = new JSONObject(String.valueOf(jasonData));
+                        mdn = jsonObject.getString("mdn");
+                        carNum = jsonObject.getString("car_num");
+                        mirrorappUpdate = jsonObject.getString("mirrorapp_update");
+                        updateVersion = jsonObject.getString("mirrorapp_version");
+
+                        Log.d("resultData-update", mdn+":  "+carNum+":  "+mirrorappUpdate+", appVersion: "+updateVersion);
+
+                    }catch (Exception e) {
+                        Log.e("jsonObject-error", e.toString());
+                    }
+                }else {
+                    resultData = "fail";
+                    Log.d("resultData-2", resultData);
+                }
+
+            }catch (Exception e) {
+
+                Log.e("error-networkthread", e.toString());
+
+                if (conn != null) {
+                    conn.disconnect();
+                }
+
+                resultData = "fail-3";
+                Log.d("resultData", resultData);
+            }
+        }
+    }
 
 
     @Override
@@ -302,17 +522,44 @@ public class MainActivity extends AppCompatActivity {
 
 
     @Override
+    protected void onPause() {
+        super.onPause();
+
+        setting.OVERLAY = true;
+        windowService.set_meterhandler.sendEmptyMessage(100);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
     protected void onResume() {
         super.onResume();
 
-        //블루투스 연결 권한
-//        bleConnPermission();
+        if (mBluetoothAdapter.isEnabled()) {
+            //블루투스 연결 권한
+            bleConnPermission();
+        }else {
+            enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+        }
 
-//        if (windowService != null) {
-//            Log.d(log_, "onResume");
-//
+
+        getWindow().addFlags(
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                        | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                        | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                        | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+
+
+        if (windowService != null) {
+            Log.d(log_, "windowService not null!!");
 //            windowService.connectAM();
-//        }
+            setting.OVERLAY = false;
+            windowService.set_meterhandler.sendEmptyMessage(100);
+        }else {
+            Log.d(log_, "windowService NULL!!"); //null
+        }
+
     }
 
     //위치권한데 대한 동적퍼미션 작업 (Location permission)
@@ -331,15 +578,14 @@ public class MainActivity extends AppCompatActivity {
     public void bleConnPermission() {
         Log.d("bleconn", "bleconn");
         String ble_conn_permission = Manifest.permission.BLUETOOTH_CONNECT;
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { //31
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { //21
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { //31
             Log.d("bleconn--",Build.VERSION.SDK_INT+"");
             Log.d("bleconn", "bleconn_lollipop");
             if (checkSelfPermission(ble_conn_permission) == PackageManager.PERMISSION_DENIED) {
                 requestPermissions(new String[]{ble_conn_permission}, BLUETOOTH_CONNECT_DENIED);
             }
         }else {
-            Log.d("bleconn", "bleconn_lollipop-else");
+            //if the api version is lower than 31 --> do nothing
         }
     }
 
@@ -371,7 +617,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-//    @TargetApi(Build.VERSION_CODES.M)
+    @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -468,8 +714,10 @@ public class MainActivity extends AppCompatActivity {
         main_layout = viewframe1.findViewById(R.id.mainframe1_layout);
         menu_layout = viewframe1.findViewById(R.id.menu_frame_layout);
         menu_main_layout = (LinearLayout) findViewById(R.id.menu_main_layout);
-        radio_button_layout = (LinearLayout) findViewById(R.id.radio_button_layout);
+//        radio_button_layout = (LinearLayout) findViewById(R.id.radio_button_layout);
         main_all_layout = (LinearLayout) findViewById(R.id.main_all_layout);
+        numberPadLayout = (LinearLayout) findViewById(R.id.numberPadLayout);
+
 
         /*메인버튼 frame2*/
         btn_empty = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_emptycar);
@@ -488,9 +736,9 @@ public class MainActivity extends AppCompatActivity {
         /*추가요금 frame4 & frame5*/
         number_pad_frame_layout = (LinearLayout) findViewById(R.id.number_pad_frame_layout);
         add_fare_frame_layout = viewframe4.findViewById(R.id.add_fare_frame_layout);
-        btn_close = (RadioButton) viewframe5.findViewById(R.id.btn_close);
-        btn_ok = (RadioButton) viewframe5.findViewById(R.id.btn_ok);
-
+        btn_close = (ButtonFitText) viewframe5.findViewById(R.id.btn_close);
+        btn_ok = (ButtonFitText) viewframe5.findViewById(R.id.btn_ok);
+//
         btn_close.setOnClickListener(numberPadClickListener);
         btn_ok.setOnClickListener(numberPadClickListener);
 
@@ -549,6 +797,7 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.btn_ok:
                     break;
                 case R.id.btn_close:
+                    number_pad_layout.setVisibility(View.GONE);
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
                     number_pad_frame_layout.setVisibility(View.GONE);
@@ -608,24 +857,26 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 /*frame2 메인하단버튼*/
                 case R.id.nbtn_emptycar:  //빈차버튼
+                    isDrivedClicked = false;
                     main_all_layout.setVisibility(View.VISIBLE);
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
                     menu_main_layout.setVisibility(View.GONE);
                     add_fare_frame_layout.setVisibility(View.GONE);
                     btn_menu.setClickable(true);
-                    btn_menu.setBackgroundResource(R.drawable.grey_gradi_btn);
+                    btn_menu.setBackgroundResource(R.drawable.grey_gradi_btn_rec);
                     //me: 버튼 -> 빈차등
                     windowService.update_BLEmeterstate(AMBlestruct.B_EMPTY);
                     break;
                 case R.id.nbtn_drivestart:  //주행버튼
+                    isDrivedClicked = true;
                     main_all_layout.setVisibility(View.VISIBLE);
                     main_layout.setVisibility(View.VISIBLE);
 //                    menu_layout.setVisibility(View.GONE);
                     menu_main_layout.setVisibility(View.GONE);
                     add_fare_frame_layout.setVisibility(View.GONE);
                     //주행버튼 클릭 -> 메뉴버튼 클릭 못하게
-                    btn_menu.setClickable(false);
+//                    btn_menu.setClickable(false);
 //                    Toast.makeText(mContext, R.string.drive_toast, Toast.LENGTH_SHORT).show();
                     //me: 버튼 -> 빈차등
                     windowService.update_BLEmeterstate(AMBlestruct.B_DRIVE);
@@ -654,15 +905,20 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.nbtn_menu:  //메뉴 btn
                     //빈차등메뉴
 //                    setupBluetooth(2);
-                    main_all_layout.setVisibility(View.GONE);
-                    main_layout.setVisibility(View.GONE);
-                    menu_main_layout.setVisibility(View.VISIBLE);
-                    add_fare_frame_layout.setVisibility(View.GONE);
-                    setEmptyStatus(btn_empty, btn_drive, btn_call, btn_pay);
-                    //me: 버튼 -> 빈차등
-                    windowService.menu_meterState(AMBlestruct.APP_MENU_REQUEST_CODE, AMBlestruct.MenuType.OPEN,"");
+                    if (isDrivedClicked == true) {
+                        Toast.makeText(mContext, R.string.drive_toast, Toast.LENGTH_SHORT).show();
+                    }else {
+                        main_all_layout.setVisibility(View.GONE);
+                        main_layout.setVisibility(View.GONE);
+                        menu_main_layout.setVisibility(View.VISIBLE);
+                        add_fare_frame_layout.setVisibility(View.GONE);
+                        setEmptyStatus(btn_empty, btn_drive, btn_call, btn_pay);
+                        //me: 버튼 -> 빈차등
+                        windowService.menu_meterState(AMBlestruct.APP_MENU_REQUEST_CODE, AMBlestruct.MenuType.OPEN,"");
 //                    Intent i = new Intent(mContext, AMMenuActivity.class);
 //                    startActivity(i);
+                    }
+
                     break;
                 case R.id.nbtn_complex:  //복합 btn
                     break;

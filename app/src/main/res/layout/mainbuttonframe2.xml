@@ -17,13 +17,14 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:orientation="horizontal"
-            android:layout_marginBottom="2dp">
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="4dp">
 
             <com.konai.appmeter.driver_am.util.ButtonFitText
                 android:id="@+id/nbtn_emptycar"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginRight="2dp"
+                android:layout_marginRight="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/grey_gradi_btn"
                 android:gravity="center|center_vertical"
@@ -39,20 +40,21 @@
                 android:gravity="center|center_vertical"
                 android:background="@drawable/yellow_gradi_btn"
                 android:padding="20dp"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:text="주행"/>
         </LinearLayout>
         <LinearLayout
             android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
 
             <com.konai.appmeter.driver_am.util.ButtonFitText
                 android:id="@+id/nbtn_reserve"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginRight="2dp"
+                android:layout_marginRight="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/green_gradi_btn"
                 android:gravity="center|center_vertical"

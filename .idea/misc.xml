@@ -4,9 +4,11 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/drawable/click_button.xml" value="0.2405" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/drawable/green_btn.xml" value="0.24" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/drawable/green_gradi_btn.xml" value="0.2215" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/drawable/green_selected_btn.xml" value="0.2215" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/drawable/grey_gradi_btn.xml" value="0.231" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/drawable/grey_gradi_btn_rec.xml" value="0.2155" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/drawable/grey_round_background.xml" value="0.2405" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/drawable/grey_selected_btn.xml" value="0.2215" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/drawable/grey_transparent_round.xml" value="0.1585" />
@@ -66,6 +68,8 @@
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/dlalog_inputfare.xml" value="0.2833333333333333" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/layout_device_list_item.xml" value="0.2953125" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/layout_menu.xml" value="0.22395833333333334" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/layout_menu_new.xml" value="0.3333333333333333" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/layout_menu_test.xml" value="0.228125" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/layout_show_mainactivity.xml" value="0.25" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/main_drawer_header.xml" value="0.24583333333333332" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/mainbuttonframe2.xml" value="0.22" />
@@ -74,10 +78,11 @@
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/menu_content_layout.xml" value="0.24583333333333332" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/newmainframe1.xml" value="0.21770833333333334" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/newmainframe2.xml" value="0.22447916666666667" />
-        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/numberpadframe5.xml" value="0.36614583333333334" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/numberpadframe5.xml" value="0.33" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/numbuttonframe4.xml" value="0.35052083333333334" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/recycler_select_driver.xml" value="0.290625" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/menu/main_drawer_menu.xml" value="0.1890625" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.24" />
         <entry key="..\:/Users/Interpass/AppData/Local/Android/Sdk/platforms/android-31/data/res/layout/simple_list_item_1.xml" value="0.21666666666666667" />
       </map>
     </option>

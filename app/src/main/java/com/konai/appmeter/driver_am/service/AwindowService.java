@@ -103,7 +103,7 @@ public class AwindowService extends Service {
     public interface mainCallBack {
         void serviceBleStatus(boolean bleStatus);  //블루투스 수신상태
         void serviceMeterState(int btnType, int mFare, int startFare, int callFare, int etcFare);  //미터기 버튼 수신상태
-        void serviceMeterMenuState(String menuMsg);  //미터기 메뉴 수신상태
+        void serviceMeterMenuState(String menuMsg, int menuType);  //미터기 메뉴 수신상태
 //        void serviceMeterMenuState(ArrayList<String> arrayList, int listsize);
     }
 
@@ -212,6 +212,16 @@ public class AwindowService extends Service {
         }
     }
 
+    public void showHideForgroundservice(boolean show) {
+        if (mView == null) {
+            return;
+        }
+        if (show == true) {
+            mView.setVisibility(View.VISIBLE);
+        }else {
+            mView.setVisibility(View.INVISIBLE);
+        }
+    }
 
     public void _overlaycarstate() {
 
@@ -322,18 +332,18 @@ public class AwindowService extends Service {
 
 
     private void startPairingBluetooth() {
-        /**
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        **/
+        //error: 20220627
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+//            // TODO: Consider calling
+//            //    ActivityCompat#requestPermissions
+//            // here to request the missing permissions, and then overriding
+//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//            //                                          int[] grantResults)
+//            // to handle the case where the user grants the permission. See the documentation
+//            // for ActivityCompat#requestPermissions for more details.
+//            return;
+//        }
+        //error: 20220627
         bluetoothDeviceSet = mBluetoothAdapter.getBondedDevices();
 
         for (BluetoothDevice device : bluetoothDeviceSet) {
@@ -370,14 +380,24 @@ public class AwindowService extends Service {
     }
 
 
+
     public Handler set_meterhandler = new Handler() {
 
         @Override
         public void handleMessage(@NonNull Message msg) {
 //            Log.d("meterHandler_service", msg.what+"");
 
+            if (msg.what == 100) {
+                if (setting.OVERLAY == false) {
+                    showHideForgroundservice(false);
+                }else {
+                    showHideForgroundservice(true);
+                }
+
+            }
+
             //status: 블루투스 상태값
-            if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE) {
+            else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE) {
 
                 if (setting.BLE_STATE == true) {
                     mCallback.serviceBleStatus(true); //null obj??
@@ -388,7 +408,9 @@ public class AwindowService extends Service {
                 //status: 빈차등 현재상태 수신값
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE) {
 
-//                Log.d("mfare_check", AMBlestruct.AMReceiveFare.M_START_FARE+" + "+AMBlestruct.AMReceiveFare.M_CALL_FARE+" + "+AMBlestruct.AMReceiveFare.M_ETC_FARE);
+                startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
+                callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);
+                etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);
 
                 if (AMBlestruct.AMReceiveFare.M_START_FARE != null) {
                     mfare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
@@ -396,10 +418,9 @@ public class AwindowService extends Service {
                     mfare = 0;
                 }
 
+                Log.d("btnTypeee", AMBlestruct.AMReceiveFare.M_STATE);
+
                 if (AMBlestruct.AMReceiveFare.M_STATE.equals("1")) {
-                    startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
-                    callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);
-                    etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);
 
                     Log.d("check_callFare-2", callFare+"");
 
@@ -417,17 +438,27 @@ public class AwindowService extends Service {
 
                 }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("4")) {
 
+                    Log.d("btntypeee", "호출");
+
                     mCallback.serviceMeterState(AMBlestruct.MeterState.CALL, mfare, startFare, callFare, etcFare);
                 }
                 //status: 빈차등 메뉴 수신값
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE) {
+
+                Log.d("메뉴버튼_메세지",AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE+"" );
 
                 ArrayList<String> arrList = new ArrayList<>(Arrays.asList(AMBlestruct.AMReceiveMenu.MENU_MSG.split("\n")));
 
 //                Log.d("arrList", arrList.toString());
 //                Log.d("arrList", arrList.size()+"");
 
-                mCallback.serviceMeterMenuState(AMBlestruct.AMReceiveMenu.MENU_MSG);
+                mCallback.serviceMeterMenuState(AMBlestruct.AMReceiveMenu.MENU_MSG, AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE);
+
+            }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_INPUT_MENU_STATE) {  //빈차등 수신메세지 입력값 보내기
+
+                Log.d("code46_msg", AMBlestruct.AMReceiveMenu.MENU_MSG);
+
+                mCallback.serviceMeterMenuState(AMBlestruct.AMReceiveMenu.MENU_MSG, AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE);
 
             }
         }
