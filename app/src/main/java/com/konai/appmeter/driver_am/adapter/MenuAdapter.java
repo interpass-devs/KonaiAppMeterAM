@@ -2,6 +2,7 @@ package com.konai.appmeter.driver_am.adapter;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -23,6 +24,7 @@ public class MenuAdapter extends RecyclerView.Adapter {
 
     Context mContext;
     ArrayList<String> items;
+    String whichMenu;
 
     //커스텀 터치리스너 interface
     public interface onItemTouchListener{
@@ -33,6 +35,10 @@ public class MenuAdapter extends RecyclerView.Adapter {
 
     public void setmTouchListener(onItemTouchListener mtouchListener) {
         this.mTouchListener = mtouchListener;
+    }
+
+    public void whichMenu(String which_menu) {
+        this.whichMenu = which_menu;
     }
 
 
@@ -104,41 +110,56 @@ public class MenuAdapter extends RecyclerView.Adapter {
             itemView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
+
                     int post = getLayoutPosition();
 
-                    if (post != RecyclerView.NO_POSITION) {
-                        if (post == 0) {
-                            //do nothing
-                            //제목은 터치 못하게하기
-                        }else {
-                            if (mTouchListener != null) {
-                                mTouchListener.onItemTouch(v, post, event);
+                    //제품정보 터치 못하게
+                    if (whichMenu.contains("제품정보")) {
+                        //do nothing
+                    }else {
+                        if (post != RecyclerView.NO_POSITION) {
+                            if (post == 0) {
+                                //do nothing
+                                //제목은 터치 못하게하기
+                            }else {
+                                if (mTouchListener != null) {
+                                    mTouchListener.onItemTouch(v, post, event);
+                                }
                             }
                         }
-
-
                     }
+
                     return false;
                 }
             });
 
 
+
+
+
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
                     int position = getLayoutPosition();
 
-                    if (position != RecyclerView.NO_POSITION) {
-                        if (position == 0) {
-                            //do nothing
-                            //제목은 클릭 못하게하기
-                        }else {
-                            if (mListener != null) {
-                                mListener.onItemClick(v, position);
+                    //제품정보 클릭 못하게
+                    if (whichMenu.contains("제품정보")) {
+                        //do nothing
+                    }else {
+                        if (position != RecyclerView.NO_POSITION) {
+                            if (position == 0) {
+                                //do nothing
+                                //제목은 클릭 못하게하기
+                            }else {
+                                if (mListener != null) {
+                                    mListener.onItemClick(v, position);
+                                }
                             }
                         }
-
                     }
+
+
                 }
             });
         }

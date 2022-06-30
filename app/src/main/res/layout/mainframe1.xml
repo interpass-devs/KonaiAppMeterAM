@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:background="@drawable/yellow_line_black_background">
+    android:background="@color/main_background"
+    android:orientation="vertical">
 
     <!--빈차등 매뉴화면-->
     <LinearLayout
@@ -65,6 +65,7 @@
             android:text="추가금액 입력"
             android:textColor="@color/grey_light"/>
         <com.konai.appmeter.driver_am.util.FontFitTextView
+            android:id="@+id/add_fare_text"
             android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -152,31 +153,76 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:orientation="vertical"
-            android:layout_gravity="bottom"
             android:layout_marginTop="20dp">
-
-            <com.konai.appmeter.driver_am.util.FontFitTextView
-                android:visibility="invisible"
-                android:id="@+id/ntv_addpayment"
-                android:layout_weight="1"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:gravity="center_vertical|right"
-                android:text="추가 1500"
-                android:textStyle="bold"
-                android:textColor="@color/orange"/>
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_gravity="bottom">
 
-            <com.konai.appmeter.driver_am.util.FontFitTextView
-                android:visibility="gone"
-                android:id="@+id/ntv_rescallpay"
-                android:layout_weight="1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:gravity="center_vertical|right"
-                android:text="호출 1000"
-                android:textStyle="bold"
-                android:textColor="@color/green"/>
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+                    <com.konai.appmeter.driver_am.util.FontFitTextView
+                        android:visibility="gone"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:gravity="left"
+                        android:text=""
+                        android:textStyle="bold"
+                        android:textColor="@color/orange"/>
+                    <com.konai.appmeter.driver_am.util.FontFitTextView
+                        android:id="@+id/ntv_suburb_rate"
+                        android:visibility="gone"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:gravity="left"
+                        android:text="시외 20%"
+                        android:textStyle="bold"
+                        android:textColor="@color/grey_light"/>
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+                    <com.konai.appmeter.driver_am.util.FontFitTextView
+                        android:visibility="gone"
+                        android:id="@+id/ntv_addpayment"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:gravity="right"
+                        android:text="추가 1500"
+                        android:textStyle="bold"
+                        android:textColor="@color/grey_light"/>
+
+                    <com.konai.appmeter.driver_am.util.FontFitTextView
+                        android:visibility="gone"
+                        android:id="@+id/ntv_rescallpay"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:gravity="right"
+                        android:text="호출 1000"
+                        android:textStyle="bold"
+                        android:textColor="@color/green"/>
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
+
+
+
+
+
+
+
 
 
         <RelativeLayout

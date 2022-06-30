@@ -8,232 +8,6 @@
 
 
     <LinearLayout
-        android:visibility="gone"
-        android:id="@+id/numberPadLayout"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:orientation="vertical"
-        android:layout_alignParentBottom="true"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="20dp">
-
-        <com.konai.appmeter.driver_am.util.FontFitTextView
-            android:layout_weight="1.5"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:gravity="center"
-            android:textColor="@color/black"
-            android:background="@drawable/white_round_background"
-            android:layout_marginBottom="15dp"/>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_1"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center|center_vertical"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="1"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginRight="4dp"
-                android:layout_marginBottom="4dp"/>
-
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_2"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="2"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginRight="4dp"
-                android:layout_marginBottom="4dp"/>
-
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_3"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="3"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginBottom="4dp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_4"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="4"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginRight="4dp"
-                android:layout_marginBottom="4dp"/>
-
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_5"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="5"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginRight="4dp"
-                android:layout_marginBottom="4dp"/>
-
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_6"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="6"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginBottom="4dp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_7"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="7"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginRight="4dp"
-                android:layout_marginBottom="4dp"/>
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_8"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="8"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginRight="4dp"
-                android:layout_marginBottom="4dp"/>
-
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_9"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="9"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginBottom="4dp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_0"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="0"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginRight="4dp"
-                android:layout_marginBottom="4dp"/>
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_clear"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="2"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="정정"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:padding="10dp"
-                android:layout_marginRight="1dp"
-                android:layout_marginBottom="4dp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_close"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="닫기"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:layout_marginRight="4dp"
-                android:layout_marginBottom="4dp"
-                android:padding="10dp"/>
-            <com.konai.appmeter.driver_am.util.ButtonFitText
-                android:id="@+id/btn_ok"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="2"
-                android:background="@drawable/grey_gradi_btn"
-                android:button="@null"
-                android:text="확인"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:padding="10dp"
-                android:layout_marginRight="1dp"
-                android:layout_marginBottom="4dp"/>
-        </LinearLayout>
-    </LinearLayout>
-
-
-
-
-
-
-
-    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -250,8 +24,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:orientation="horizontal"
-                android:layout_marginLeft="20dp"
-                android:layout_marginRight="20dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp">
                 <com.konai.appmeter.driver_am.util.ButtonFitText
@@ -276,7 +50,7 @@
 
             <androidx.recyclerview.widget.RecyclerView
                 android:visibility="visible"
-                android:layout_weight="6"
+                android:layout_weight="5"
                 android:id="@+id/menuRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -285,6 +59,10 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 android:paddingTop="20dp"/>
         </LinearLayout>
+
+
+
+
 
         <LinearLayout
             android:id="@+id/main_all_layout"
@@ -337,10 +115,11 @@
                 android:layout_height="0dp"
                 android:orientation="vertical"
                 android:layout_marginBottom="5dp">
+
                 <FrameLayout
                     android:id="@+id/frame1"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="match_parent" />
             </LinearLayout>
 
 
@@ -363,6 +142,222 @@
 
 
 
+        </LinearLayout>
+    </LinearLayout>
+
+
+
+
+
+
+
+    <LinearLayout
+        android:layout_weight="10"
+        android:visibility="gone"
+        android:id="@+id/menuNumberPadLayout"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="20dp">
+
+        <com.konai.appmeter.driver_am.util.FontFitTextView
+            android:id="@+id/menu_input_text"
+            android:layout_weight="1.5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:background="@drawable/white_round_background"
+            android:layout_marginBottom="15dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center|center_vertical"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="1"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginRight="4dp"
+                android:layout_marginBottom="4dp"/>
+
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="2"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginRight="4dp"
+                android:layout_marginBottom="4dp"/>
+
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="3"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginBottom="4dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_4"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="4"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginRight="4dp"
+                android:layout_marginBottom="4dp"/>
+
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="5"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginRight="4dp"
+                android:layout_marginBottom="4dp"/>
+
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_6"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="6"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginBottom="4dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_7"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="7"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginRight="4dp"
+                android:layout_marginBottom="4dp"/>
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_8"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="8"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginRight="4dp"
+                android:layout_marginBottom="4dp"/>
+
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_9"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="9"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginBottom="4dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_0"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="0"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginRight="4dp"
+                android:layout_marginBottom="4dp"/>
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:onClick="onClick"
+                android:id="@+id/m_btn_clear"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="정정"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:padding="10dp"
+                android:layout_marginRight="1dp"
+                android:layout_marginBottom="4dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_close"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="닫기"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:layout_marginRight="4dp"
+                android:layout_marginBottom="4dp"
+                android:padding="10dp"/>
+            <com.konai.appmeter.driver_am.util.ButtonFitText
+                android:id="@+id/m_btn_ok"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:background="@drawable/grey_gradi_btn"
+                android:text="확인"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:padding="10dp"
+                android:layout_marginRight="1dp"
+                android:layout_marginBottom="4dp"/>
         </LinearLayout>
     </LinearLayout>
 

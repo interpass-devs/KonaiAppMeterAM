@@ -1,10 +1,8 @@
 package com.konai.appmeter.driver_am.view;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,10 +22,9 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -35,15 +32,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.konai.appmeter.driver_am.BuildConfig;
 import com.konai.appmeter.driver_am.adapter.MenuAdapter;
 import com.konai.appmeter.driver_am.R;
 import com.konai.appmeter.driver_am.handler.BackPressedKeyHandler;
@@ -78,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     String File_Name = "app-debug.apk";   //확장자를 포함한 파일명
     String fileURL = "http://175.125.20.72:8080/update/app-debug.apk"; // URL: 웹서버 쪽 파일이 있는 경로
 
-    private BackPressedKeyHandler backKeyHandler = new BackPressedKeyHandler(this);
+    private BackPressedKeyHandler backKeyHandler = new BackPressedKeyHandler(this, windowService);
 
     private PermissionSupoort mPermission;
     private AMBluetoothManager amBluetoothManager = null;
@@ -98,7 +92,18 @@ public class MainActivity extends AppCompatActivity {
     private MyTouchListener mTouchListener;
     private View viewframe1, viewframe2, viewframe3, viewframe4, viewframe5;
     private FrameLayout frame1, frame2, frame3, frame4, frame5;
-    private LinearLayout main_layout, menu_layout, numberPadLayout, menu_main_layout, main_all_layout, radio_button_layout, main_btn_layout, number_pad_layout, add_fare_frame_layout, number_pad_frame_layout, menu_list_layout;
+    private LinearLayout main_layout, menu_layout, menuNumberPadLayout, menu_main_layout, main_all_layout, radio_button_layout, main_btn_layout, number_pad_layout, add_fare_frame_layout, number_pad_frame_layout, menu_list_layout;
+    /* 추가금액 입력버튼 */
+    int index = 0;
+    ArrayList<String> addFareList = new ArrayList<>();
+    private String addFareVal = "";
+    private ButtonFitText btn_0, btn_1, btn_2, btn_3, btn_4, btn_5, btn_6, btn_7, btn_8, btn_9, btn_clear, btn_close, btn_ok;
+    /* 메뉴 입력버튼 */
+    ArrayList<String> menuInputList = new ArrayList<>();
+    private String menuInputVal = "";
+    private ButtonFitText m_btn_0, m_btn_1, m_btn_2, m_btn_3, m_btn_4, m_btn_5, m_btn_6, m_btn_7, m_btn_8, m_btn_9, m_btn_clear, m_btn_close, m_btn_ok;
+    private FontFitTextView menu_input_text, add_fare_text;
+    private String menuInput;
     private MenuAdapter menuAdapter;
     private RecyclerView menuRecyclerView;
     private TextView menu_text;
@@ -106,9 +111,9 @@ public class MainActivity extends AppCompatActivity {
     private ButtonFitText btn_menu, btn_complex, btn_login, btn_arrive, btn_add_pay, close_menu_btn, back_menu_btn;
     private ButtonFitText btn_empty, btn_drive, btn_call, btn_pay;
     private ImageView iv_ble;
-    private FontFitTextView tv_night_status, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status, menu_title;
+    private int totalFareValue;
+    private FontFitTextView tv_night_status, tv_suburb_rate, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status, menu_title;
     private Boolean menuClicked, isDrivedClicked = false;
-    private ButtonFitText btn_close, btn_ok;
     private Intent enableIntent;
 
 
@@ -121,10 +126,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void serviceMeterState(int btnType, int mFare, int startFare, int callFare, int etcFare) {
+        public void serviceMeterState(int btnType
+                                    , int mFare
+                                    , int startFare
+                                    , int callFare
+                                    , int etcFare
+                                    , int nightFare
+                                    , int complexFare
+                                    , int suburbFare
+                                    , int suburbFareRate) {
 
             AMBlestruct.AMReceiveFare.M_CALL_FARE = callFare + "";
 
+//            Log.d("ttttt","시외할증: "+suburbFareRate+",  심야할증: "+nightFare);
+
+
+
+            //호출요금
             if (!AMBlestruct.AMReceiveFare.M_CALL_FARE.equals("0")) {
                 tv_rescall_pay.setVisibility(View.VISIBLE);
                 tv_rescall_pay.setText("호출 " + AMBlestruct.AMReceiveFare.M_CALL_FARE);
@@ -132,33 +150,72 @@ public class MainActivity extends AppCompatActivity {
                 tv_rescall_pay.setVisibility(View.GONE);
             }
 
+            //추가요금
+            if (addFareVal.equals("")) {
 
-            long value = Long.parseLong(mFare + "");
+            }else {
+
+            }
+
+
+            //시외할증
+            if (suburbFareRate == 0) {
+                tv_suburb_rate.setVisibility(View.GONE);
+            }else {
+                tv_suburb_rate.setText("시외 "+suburbFareRate+"%   ");
+                tv_suburb_rate.setVisibility(View.VISIBLE);
+            }
+
+            //심야할증
+//            nightFare = 1;
+            if (nightFare == 0) {
+                tv_night_status.setVisibility(View.GONE);
+            }else {
+                tv_night_status.setText("심야 20%   ");
+                tv_night_status.setVisibility(View.VISIBLE);
+            }
+
+            //status: 추가요금 총요금에 더하기
+            /**
+            int addfare = 0;
+            if (!addFareVal.equals("")) {
+                addfare = Integer.parseInt(addFareVal);
+                mFare += addfare;
+            }
+            **/
+
+            long value = Long.parseLong(mFare +"");
             DecimalFormat format = new DecimalFormat("###,###");
 
-            //상태값 요금 변경
+            //me: 상태값 요금 변경  ***************************
             display_Runstate(format.format(value));
 
+
             if (btnType == AMBlestruct.MeterState.PAY) {
-                btn_pay.performClick();
+//                btn_pay.performClick();
                 btn_main_status.setText("지불");
                 btn_main_status.setTextColor(getResources().getColor(R.color.orange));
 
             } else if (btnType == AMBlestruct.MeterState.EMPTY) {
-                menu_main_layout.setVisibility(View.GONE);
+                Log.d("btnType","empty");
                 main_all_layout.setVisibility(View.VISIBLE);
                 main_layout.setVisibility(View.VISIBLE);
-                btn_empty.performClick();
+//                btn_empty.performClick();
                 btn_main_status.setText("빈차");
                 btn_main_status.setTextColor(getResources().getColor(R.color.white));
+                tv_add_pay.setVisibility(View.GONE);
+                menu_main_layout.setVisibility(View.GONE);
+                menuNumberPadLayout.setVisibility(View.GONE);
+                tv_night_status.setVisibility(View.GONE);
+
 
             } else if (btnType == AMBlestruct.MeterState.DRIVE) {
-                btn_drive.performClick();
+//                btn_drive.performClick();
                 btn_main_status.setText("주행");
                 btn_main_status.setTextColor(getResources().getColor(R.color.yellow));
 
             } else if (btnType == AMBlestruct.MeterState.CALL) {  //호출대신 주행이 불려짐.. i don't know why.
-                btn_call.performClick();
+//                btn_call.performClick();
                 btn_main_status.setText("호출");
                 tv_rescall_pay.setVisibility(View.VISIBLE);
                 tv_rescall_pay.setText(AMBlestruct.AMReceiveFare.M_CALL_FARE);
@@ -168,15 +225,19 @@ public class MainActivity extends AppCompatActivity {
         //메뉴 빈차등 수신요청.. -> windowService에 넘겨줌
         @Override
         public void serviceMeterMenuState(String menuMsg, int menuType) {
-
+            
             //빈차등에서 메뉴 -> 빈차 클릭시 = 초기화시킴
             if (menuType == 48) {
                 Log.d("menuType@@", menuType+"");
-                main_all_layout.setVisibility(View.VISIBLE);
-                main_layout.setVisibility(View.VISIBLE);
-                menu_main_layout.setVisibility(View.GONE);
-                numberPadLayout.setVisibility(View.GONE);
-                add_fare_frame_layout.setVisibility(View.VISIBLE);
+//                main_all_layout.setVisibility(View.VISIBLE);
+//                main_layout.setVisibility(View.VISIBLE);
+//                menu_main_layout.setVisibility(View.GONE);
+//                menuNumberPadLayout.setVisibility(View.GONE);
+//                add_fare_frame_layout.setVisibility(View.VISIBLE);
+                //trigger close btn
+                close_menu_btn.performClick();
+                menuNumberPadLayout.setVisibility(View.GONE);
+                menu_layout.setVisibility(View.GONE);
             }
 
             //받아온 빈차등 메뉴 리스트
@@ -184,16 +245,26 @@ public class MainActivity extends AppCompatActivity {
             Log.d("menulist", menuList.toString());
             Log.d("menulist", menuList.size() + "");
 
+
             menuAdapter = new MenuAdapter(MainActivity.this, menuList);
+
+            menuAdapter.whichMenu(menuList.get(0));
+
             menuRecyclerView.setAdapter(menuAdapter);
 
             if (menuList.size() == 1) {
                 //메뉴 리스트가 1일땐 -> 제목으로 (ex; [메인메뉴])
                 //클릭 안되게 설정
                 //숫자입력패드 보이기
-                numberPadLayout.setVisibility(View.VISIBLE);
+                menuNumberPadLayout.setVisibility(View.VISIBLE);
+                menu_input_text.setText("");
+
+//                선택목록 입력값 빈차등으로 보내기 "47" --> 입력창(menuNumberPadLayout)에서 보내기...
+//                windowService.
             }else {
-                numberPadLayout.setVisibility(View.GONE);
+
+                menuNumberPadLayout.setVisibility(View.GONE);
+
                 //메뉴어뎁터 클릭리스너
                 menuAdapter.setmListener(new MenuAdapter.onItemClickListener() {
                     @Override
@@ -228,6 +299,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("bleconnnn", "bleconnnn");
             iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
             Toast.makeText(MainActivity.this, "빈차등 연결 성공", Toast.LENGTH_SHORT).show();
+
         } else {
             iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
         }
@@ -275,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
         //블루투스 관리자객체 소환
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        /**
+/**
         //업데이트버전 체크
         Thread NetworkThread = new Thread(new NetworkThread());
         NetworkThread.start();
@@ -300,7 +372,6 @@ public class MainActivity extends AppCompatActivity {
                             new Thread(new UpdateThread()).start();
 
                             goMain();
-
                         }
                     });
                     AlertDialog alertDialog = builder.create();
@@ -318,6 +389,9 @@ public class MainActivity extends AppCompatActivity {
 **/
 
     goMain();
+
+
+
 
     }//onCreate
 
@@ -526,7 +600,13 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 
         setting.OVERLAY = true;
-        windowService.set_meterhandler.sendEmptyMessage(100);
+
+        if (windowService != null) {
+            Log.d("overlaycheck","not null");
+            windowService.set_meterhandler.sendEmptyMessage(100);
+        }else {
+            Log.d("overlaycheck","null");
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -534,32 +614,57 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        //error: 20220630
+        /**
         if (mBluetoothAdapter.isEnabled()) {
-            //블루투스 연결 권한
+            //안드로이드 api 31이상만 - 블루투스 연결 권한
             bleConnPermission();
         }else {
+            //안드로이드 api 31이하
+            Log.d("onResume", "bluetooth not able");
             enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         }
+        **/
 
 
-        getWindow().addFlags(
+        //31 이상
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Log.d("versionCheck","31이상");
+            if (mBluetoothAdapter.isEnabled()) {
+                Log.d("versionCheck","bluetooth enable");
+                bleConnPermission();
+            }else {
+                Log.d("versionCheck","bluetooth not enable");
+            }
+
+        }else {
+            Log.d("versionCheck","31이상 아님");
+            if (mBluetoothAdapter.isEnabled()) {
+                Log.d("versionCheck","bluetooth enable");
+                //do nothing
+            }else {
+                Log.d("versionCheck","bluetooth not enable");
+                enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+            }
+        }
+
+            getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                         | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                         | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                         | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
-
         if (windowService != null) {
-            Log.d(log_, "windowService not null!!");
-//            windowService.connectAM();
+            Log.d(log_, "windowService not NULL!!");
             setting.OVERLAY = false;
             windowService.set_meterhandler.sendEmptyMessage(100);
+//            windowService.connectAM();
         }else {
             Log.d(log_, "windowService NULL!!"); //null
         }
-
     }
 
     //위치권한데 대한 동적퍼미션 작업 (Location permission)
@@ -572,7 +677,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void bleConnPermission() {
@@ -637,7 +741,7 @@ public class MainActivity extends AppCompatActivity {
                 //블루투스 활성화
                 case REQUEST_ENABLE_BT:
                     if (resultCode == RESULT_OK) {
-                        Toast.makeText(mContext, "블루투스 ON", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, "블루투스 페어링", Toast.LENGTH_SHORT).show();
 
                     } else if (resultCode == RESULT_CANCELED) {
                         Toast.makeText(mContext, "블루투스 설정을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
@@ -705,6 +809,7 @@ public class MainActivity extends AppCompatActivity {
         tv_night_status = (FontFitTextView) viewframe1.findViewById(R.id.ntv_status);
         tv_add_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_addpayment);
         tv_rescall_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_rescallpay);
+        tv_suburb_rate = (FontFitTextView) viewframe1.findViewById(R.id.ntv_suburb_rate);
         tv_total_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_totalpay);
         menu_title = (FontFitTextView) viewframe1.findViewById(R.id.menu_title);
         menu_list_layout = (LinearLayout) viewframe1.findViewById(R.id.layoutlist);
@@ -716,7 +821,6 @@ public class MainActivity extends AppCompatActivity {
         menu_main_layout = (LinearLayout) findViewById(R.id.menu_main_layout);
 //        radio_button_layout = (LinearLayout) findViewById(R.id.radio_button_layout);
         main_all_layout = (LinearLayout) findViewById(R.id.main_all_layout);
-        numberPadLayout = (LinearLayout) findViewById(R.id.numberPadLayout);
 
 
         /*메인버튼 frame2*/
@@ -734,11 +838,35 @@ public class MainActivity extends AppCompatActivity {
         btn_add_pay = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_addpayment);
 
         /*추가요금 frame4 & frame5*/
+        number_pad_layout = (LinearLayout) findViewById(R.id.number_pad_layout);
         number_pad_frame_layout = (LinearLayout) findViewById(R.id.number_pad_frame_layout);
         add_fare_frame_layout = viewframe4.findViewById(R.id.add_fare_frame_layout);
+        add_fare_text = (FontFitTextView) viewframe4.findViewById(R.id.add_fare_text);
+        btn_0 = (ButtonFitText) viewframe5.findViewById(R.id.btn_0);
+        btn_1 = (ButtonFitText) viewframe5.findViewById(R.id.btn_1);
+        btn_2 = (ButtonFitText) viewframe5.findViewById(R.id.btn_2);
+        btn_3 = (ButtonFitText) viewframe5.findViewById(R.id.btn_3);
+        btn_4 = (ButtonFitText) viewframe5.findViewById(R.id.btn_4);
+        btn_5 = (ButtonFitText) viewframe5.findViewById(R.id.btn_5);
+        btn_6 = (ButtonFitText) viewframe5.findViewById(R.id.btn_6);
+        btn_7 = (ButtonFitText) viewframe5.findViewById(R.id.btn_7);
+        btn_8 = (ButtonFitText) viewframe5.findViewById(R.id.btn_8);
+        btn_9 = (ButtonFitText) viewframe5.findViewById(R.id.btn_9);
+        btn_clear = (ButtonFitText) viewframe5.findViewById(R.id.btn_clear);
         btn_close = (ButtonFitText) viewframe5.findViewById(R.id.btn_close);
         btn_ok = (ButtonFitText) viewframe5.findViewById(R.id.btn_ok);
-//
+
+        btn_0.setOnClickListener(numberPadClickListener);
+        btn_1.setOnClickListener(numberPadClickListener);
+        btn_2.setOnClickListener(numberPadClickListener);
+        btn_3.setOnClickListener(numberPadClickListener);
+        btn_4.setOnClickListener(numberPadClickListener);
+        btn_5.setOnClickListener(numberPadClickListener);
+        btn_6.setOnClickListener(numberPadClickListener);
+        btn_7.setOnClickListener(numberPadClickListener);
+        btn_8.setOnClickListener(numberPadClickListener);
+        btn_9.setOnClickListener(numberPadClickListener);
+        btn_clear.setOnClickListener(numberPadClickListener);
         btn_close.setOnClickListener(numberPadClickListener);
         btn_ok.setOnClickListener(numberPadClickListener);
 
@@ -771,13 +899,49 @@ public class MainActivity extends AppCompatActivity {
         btn_arrive.setOnClickListener(mainBtnClickListener);
         btn_add_pay.setOnClickListener(mainBtnClickListener);
 
+
+        /* menu_main_layout 안의 */
         /* 빈차등 메뉴 */
         close_menu_btn = (ButtonFitText) findViewById(R.id.close_menu_btn);
         back_menu_btn = (ButtonFitText) findViewById(R.id.back_menu_btn);
         close_menu_btn.setOnClickListener(menuBtnClickListener);
         back_menu_btn.setOnClickListener(menuBtnClickListener);
 
+        /*activity_main 에 있는
+        메뉴 입력버튼 레이아웃*/
+        menuNumberPadLayout = (LinearLayout) findViewById(R.id.menuNumberPadLayout);
+        menu_input_text = (FontFitTextView) findViewById(R.id.menu_input_text);
+        m_btn_0 = (ButtonFitText) findViewById(R.id.m_btn_0);
+        m_btn_1 = (ButtonFitText) findViewById(R.id.m_btn_1);
+        m_btn_2 = (ButtonFitText) findViewById(R.id.m_btn_2);
+        m_btn_3 = (ButtonFitText) findViewById(R.id.m_btn_3);
+        m_btn_4 = (ButtonFitText) findViewById(R.id.m_btn_4);
+        m_btn_5 = (ButtonFitText) findViewById(R.id.m_btn_5);
+        m_btn_6 = (ButtonFitText) findViewById(R.id.m_btn_6);
+        m_btn_7 = (ButtonFitText) findViewById(R.id.m_btn_7);
+        m_btn_8 = (ButtonFitText) findViewById(R.id.m_btn_8);
+        m_btn_9 = (ButtonFitText) findViewById(R.id.m_btn_9);
+        m_btn_clear = (ButtonFitText) findViewById(R.id.m_btn_clear);
+        m_btn_close = (ButtonFitText) findViewById(R.id.m_btn_close);
+        m_btn_ok = (ButtonFitText) findViewById(R.id.m_btn_ok);
+        m_btn_0.setOnClickListener(menuBtnClickListener);
+        m_btn_1.setOnClickListener(menuBtnClickListener);
+        m_btn_2.setOnClickListener(menuBtnClickListener);
+        m_btn_3.setOnClickListener(menuBtnClickListener);
+        m_btn_4.setOnClickListener(menuBtnClickListener);
+        m_btn_5.setOnClickListener(menuBtnClickListener);
+        m_btn_6.setOnClickListener(menuBtnClickListener);
+        m_btn_7.setOnClickListener(menuBtnClickListener);
+        m_btn_8.setOnClickListener(menuBtnClickListener);
+        m_btn_9.setOnClickListener(menuBtnClickListener);
+        m_btn_clear.setOnClickListener(menuBtnClickListener);
+        m_btn_close.setOnClickListener(menuBtnClickListener);
+        m_btn_ok.setOnClickListener(menuBtnClickListener);
+
+
+
     }//viewFrameVariablesConfiguration
+
 
 
 
@@ -793,19 +957,88 @@ public class MainActivity extends AppCompatActivity {
     private View.OnClickListener numberPadClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.btn_ok:
-                    break;
-                case R.id.btn_close:
-                    number_pad_layout.setVisibility(View.GONE);
-                    main_layout.setVisibility(View.VISIBLE);
-                    menu_layout.setVisibility(View.GONE);
-                    number_pad_frame_layout.setVisibility(View.GONE);
-                    add_fare_frame_layout.setVisibility(View.GONE);
-                    break;
+
+            for (int i=0; i<1; i++) {
+                index = i;
+                switch (v.getId()) {
+                    case R.id.btn_0:
+                        if (addFareList.size() == 0){
+                            //do nothing
+                        }else {
+                            addFareList.add("0");
+                        }
+                        break;
+                    case R.id.btn_1:
+                        addFareList.add("1");
+                        break;
+                    case R.id.btn_2:
+                        addFareList.add("2");
+                        break;
+                    case R.id.btn_3:
+                        addFareList.add("3");
+                        break;
+                    case R.id.btn_4:
+                        addFareList.add("4");
+                        break;
+                    case R.id.btn_5:
+                        addFareList.add("5");
+                        break;
+                    case R.id.btn_6:
+                        addFareList.add("6");
+                        break;
+                    case R.id.btn_7:
+                        addFareList.add("7");
+                        break;
+                    case R.id.btn_8:
+                        addFareList.add("8");
+                        break;
+                    case R.id.btn_9:
+                        addFareList.add("9");
+                        break;
+                    case R.id.btn_clear:
+                        if (addFareList.size() != 0) {
+                            addFareList.removeAll(addFareList);
+                        }
+                        break;
+                    case R.id.btn_close:
+                        addFareList = new ArrayList<>();
+                        addFareVal = "";
+                        number_pad_layout.setVisibility(View.VISIBLE);
+                        main_layout.setVisibility(View.VISIBLE);
+                        menu_layout.setVisibility(View.GONE);
+                        number_pad_frame_layout.setVisibility(View.GONE);
+                        add_fare_frame_layout.setVisibility(View.GONE);
+                        break;
+                    case R.id.btn_ok: // 확인
+                        number_pad_layout.setVisibility(View.VISIBLE);
+                        main_layout.setVisibility(View.VISIBLE);
+                        menu_layout.setVisibility(View.GONE);
+                        number_pad_frame_layout.setVisibility(View.GONE);
+                        add_fare_frame_layout.setVisibility(View.GONE);
+                        tv_add_pay.setVisibility(View.VISIBLE);
+                        tv_add_pay.setText("추가 "+addFareVal);
+                        break;
+                }//switch
+
+            }//for
+
+            Log.d("addFareList", addFareList.toString());
+
+            try {
+                if (addFareList.size() == 0) {
+                    add_fare_text.setText("0원");
+                }else {
+                    addFareVal = TextUtils.join("",addFareList);
+                    add_fare_text.setText(addFareVal+"원");
+
+                }
+            }catch (Exception e) {
+                e.printStackTrace();
             }
         }
     };
+
+
 
 
     //메뉴버튼 클릭리스너
@@ -813,23 +1046,104 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
-            switch (v.getId()) {
+            for (int i=0; i<1; i++) {
 
-                case R.id.close_menu_btn:  //메뉴-이전버튼
-                    //me: 앱 -> 빈차등
-                    AMBlestruct.MenuType.MENU_CONTENT = "2";
-                    windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,""); //닫기
-                    main_all_layout.setVisibility(View.VISIBLE);
-                    menu_main_layout.setVisibility(View.GONE);  //status:  닫기 수신번호가 잘 왔을 때 설정..  !!!!!!!!!!!!
-                    main_layout.setVisibility(View.VISIBLE);  //빈차화면
-                    break;
-                case R.id.back_menu_btn:
-                    //me: 앱 -> 빈차등
-                    AMBlestruct.MenuType.MENU_CONTENT = "1";
-                    windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,""); //이전(정정)
-                    break;
+                switch (v.getId()) {
 
+                    case R.id.close_menu_btn:  //메뉴-닫기버튼
+                        //me: 앱 -> 빈차등
+                        AMBlestruct.MenuType.MENU_CONTENT = "2";
+                        menuNumberPadLayout.setVisibility(View.GONE);
+                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,""); //닫기
+                        main_all_layout.setVisibility(View.VISIBLE);
+                        menu_main_layout.setVisibility(View.GONE);  //status:  닫기 수신번호가 잘 왔을 때 설정..  !!!!!!!!!!!!
+                        main_layout.setVisibility(View.VISIBLE);  //빈차화면
+                        break;
+                    case R.id.back_menu_btn:
+                        //me: 앱 -> 빈차등
+                        AMBlestruct.MenuType.MENU_CONTENT = "1";
+                        menuNumberPadLayout.setVisibility(View.GONE);
+                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,""); //이전(정정)
+                        break;
+                    /*메뉴- 숫자패드 버튼*/
+                    case R.id.m_btn_0:
+                        menuInputList.add("0");
+                        break;
+                    case R.id.m_btn_1:
+                        menuInputList.add("1");
+                        break;
+                    case R.id.m_btn_2:
+                        menuInputList.add("2");
+                        break;
+                    case R.id.m_btn_3:
+                        menuInputList.add("3");
+                        break;
+                    case R.id.m_btn_4:
+                        menuInputList.add("4");
+                        break;
+                    case R.id.m_btn_5:
+                        menuInputList.add("5");
+                        break;
+                    case R.id.m_btn_6:
+                        menuInputList.add("6");
+                        break;
+                    case R.id.m_btn_7:
+                        menuInputList.add("7");
+                        break;
+                    case R.id.m_btn_8:
+                        menuInputList.add("8");
+                        break;
+                    case R.id.m_btn_9:
+                        menuInputList.add("9");
+                        break;
+                    case R.id.m_btn_clear:
+                        if (menuInputList.size() != 0) {
+                            menuInputList.removeAll(menuInputList);
+                            menu_input_text.setText("");
+                        }
+                        break;
+                    case R.id.m_btn_close:
+                        menuInputList.removeAll(menuInputList);
+                        menuInputVal = "";
+                        menu_input_text.setText("");
+
+                        //me: 앱 -> 빈차등
+                        windowService.menu_input_meterState("47", "0", menuInputVal.length(), menuInputVal); //명령/ 입력완료여부(0-취소/1-완료)/ 입력데이터 길이/ 입력내용
+
+                        //닫기 전송
+                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  "2", ""); //2-닫기
+
+                        menuNumberPadLayout.setVisibility(View.GONE);
+                        menu_main_layout.setVisibility(View.GONE);
+                        main_layout.setVisibility(View.VISIBLE);
+                        main_all_layout.setVisibility(View.VISIBLE);
+
+                        break;
+                    case R.id.m_btn_ok:
+                        menu_input_text.setText(menuInputVal);
+
+                        //me: 앱 -> 빈차등
+                        windowService.menu_input_meterState("47", "1", menuInputVal.length(), menuInputVal); //명령/ 입력완료여부(0-취소/1-완료)/ 입력데이터 길이/ 입력내용
+//                        windowService.menu_input_responseState("92");
+                        break;
+                }//switch
+            }//for
+
+            Log.d("menuInputList", menuInputList.toString());
+
+            try {
+                if (menuInputList.size() == 0) {
+                    //0
+                }else {
+                    menuInputVal = TextUtils.join("", menuInputList);
+                    Log.d("menuInputVal", menuInputVal);
+                    menu_input_text.setText(menuInputVal);
+                    //값
+                }
+            }catch (Exception e) {
+                e.printStackTrace();
             }
+
 
         }
     };
@@ -842,19 +1156,9 @@ public class MainActivity extends AppCompatActivity {
 
             switch (v.getId()) {
 
-                case R.id.nbtn_connectble:  //블루투스 iv
-//                    setupBluetooth(1);
-                    break;
                 case R.id.nbtn_main_status:  //운행 status텍스트
                     break;
-                case R.id.ntv_status:  //ex:심야20% tv
-                    break;
-                case R.id.ntv_addpayment:  //추가요금 tv
-                    break;
-                case R.id.ntv_rescallpay:  //ex:호출1000 tv
-                    break;
-                case R.id.ntv_totalpay:  //총 운행금액 tv
-                    break;
+
                 /*frame2 메인하단버튼*/
                 case R.id.nbtn_emptycar:  //빈차버튼
                     isDrivedClicked = false;
@@ -866,20 +1170,16 @@ public class MainActivity extends AppCompatActivity {
                     btn_menu.setClickable(true);
                     btn_menu.setBackgroundResource(R.drawable.grey_gradi_btn_rec);
                     //me: 버튼 -> 빈차등
-                    windowService.update_BLEmeterstate(AMBlestruct.B_EMPTY);
+                    windowService.update_BtnMeterstate(AMBlestruct.B_EMPTY);
                     break;
                 case R.id.nbtn_drivestart:  //주행버튼
                     isDrivedClicked = true;
                     main_all_layout.setVisibility(View.VISIBLE);
                     main_layout.setVisibility(View.VISIBLE);
-//                    menu_layout.setVisibility(View.GONE);
                     menu_main_layout.setVisibility(View.GONE);
                     add_fare_frame_layout.setVisibility(View.GONE);
-                    //주행버튼 클릭 -> 메뉴버튼 클릭 못하게
-//                    btn_menu.setClickable(false);
-//                    Toast.makeText(mContext, R.string.drive_toast, Toast.LENGTH_SHORT).show();
                     //me: 버튼 -> 빈차등
-                    windowService.update_BLEmeterstate(AMBlestruct.B_DRIVE);
+                    windowService.update_BtnMeterstate(AMBlestruct.B_DRIVE);
                     break;
 
                 case R.id.nbtn_reserve:    //호출버튼
@@ -889,8 +1189,7 @@ public class MainActivity extends AppCompatActivity {
                     menu_main_layout.setVisibility(View.GONE);
                     add_fare_frame_layout.setVisibility(View.GONE);
                     //me: 버튼 -> 빈차등
-                    windowService.update_BLEmeterstate(AMBlestruct.B_CALL);
-//                    tv_rescall_pay.setVisibility(View.VISIBLE); //빈차등으로 부터 호출값 받으면 보이기
+                    windowService.update_BtnMeterstate(AMBlestruct.B_CALL);
                     break;
 
                 case R.id.nbtn_driveend:  //지불버튼
@@ -898,7 +1197,7 @@ public class MainActivity extends AppCompatActivity {
                     main_layout.setVisibility(View.VISIBLE);
                     menu_main_layout.setVisibility(View.GONE);
                     //me: 버튼 -> 빈차등
-                    windowService.update_BLEmeterstate(AMBlestruct.B_PAY);
+                    windowService.update_BtnMeterstate(AMBlestruct.B_PAY);
                     break;
 
                 /*frame3 메인상단버튼*/
@@ -915,10 +1214,7 @@ public class MainActivity extends AppCompatActivity {
                         setEmptyStatus(btn_empty, btn_drive, btn_call, btn_pay);
                         //me: 버튼 -> 빈차등
                         windowService.menu_meterState(AMBlestruct.APP_MENU_REQUEST_CODE, AMBlestruct.MenuType.OPEN,"");
-//                    Intent i = new Intent(mContext, AMMenuActivity.class);
-//                    startActivity(i);
                     }
-
                     break;
                 case R.id.nbtn_complex:  //복합 btn
                     break;
@@ -928,6 +1224,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.nbtn_addpayment:  //추가금액 btn
                     //show frame 4
+                    addFareList = new ArrayList<>();
+                    addFareVal = "";
+                    add_fare_text.setText("0원");
                     main_layout.setVisibility(View.GONE);
                     menu_layout.setVisibility(View.GONE);
                     number_pad_frame_layout.setVisibility(View.VISIBLE);

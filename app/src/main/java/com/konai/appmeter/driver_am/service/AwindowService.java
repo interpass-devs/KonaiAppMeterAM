@@ -54,58 +54,48 @@ import java.util.concurrent.BlockingQueue;
 
 public class AwindowService extends Service {
 
-    String TAG = "WindowService";
-    NotificationManager notificationManager;
+    String log = "log_WindowService";
+    private Handler mHandler;
     private LocationManager locationManager;
     private static AMBluetoothManager amBluetoothManager = null;
-    public BluetoothDevice bluetoothDevice = null;
-    static final UUID BT_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
     public Set<BluetoothDevice> bluetoothDeviceSet;
     public ArrayList<String> deviceList = new ArrayList<>();
     public WindowManager windowManager;
     private BluetoothAdapter mBluetoothAdapter = null;
     public View mView;
-    private Handler mHandler;
-    private String mDrvnum = "";
-    public String log="log_";
-
     private static Thread mainThread = null;
     private static Thread checkstateThread = null;
-
     private final IBinder m_ServiceBinder = new ServiceBinder();
     private int mfare = 0;
     private int startFare = 0;
     private int callFare = 0;
-    private int etcFare = 0;
+    private int etcFare = 0;  //추가 또는 기타요금
+    private int nightFare = 0;
+    private int complexFare = 0;
+    private int suburbFare = 0;
+    private int suburbFareRate = 0;
 
-//    BlockingQueue<CalQueue> mCalblockQ = new ArrayBlockingQueue<CalQueue>(10);
-
-
-    public class ServiceBinder extends Binder {
-
-        public AwindowService getService() {
-            return AwindowService.this;
-        }
-    }
-
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return m_ServiceBinder;
-    }
-
-    public boolean onUnbind(Intent intent) {
-//        close();
-        return super.onUnbind(intent);
-    }
 
     // Activity 에서 정의해 해당 서비스와 통신 할 함수를 추상함수로 정의
     public interface mainCallBack {
-        void serviceBleStatus(boolean bleStatus);  //블루투스 수신상태
-        void serviceMeterState(int btnType, int mFare, int startFare, int callFare, int etcFare);  //미터기 버튼 수신상태
-        void serviceMeterMenuState(String menuMsg, int menuType);  //미터기 메뉴 수신상태
-//        void serviceMeterMenuState(ArrayList<String> arrayList, int listsize);
+
+        //블루투스 수신상태
+        void serviceBleStatus(boolean bleStatus);
+        //미터기 버튼 수신상태
+        void serviceMeterState(int btnType
+                            , int mFare
+                            , int startFare
+                            , int callFare
+                            , int etcFare
+                            , int nightFare
+                            , int complexFare
+                            , int suburbFare
+                            , int suburbFareRate);
+
+        //미터기 메뉴 수신상태
+        void serviceMeterMenuState(String menuMsg, int menuType);
     }
+
 
     // Activity 와 통신할 callback 객체
     public mainCallBack mCallback = null;
@@ -118,45 +108,10 @@ public class AwindowService extends Service {
 
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        amBluetoothManager = new AMBluetoothManager(this, AwindowService.this);
-        ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
-//        ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN);
-//        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-//            Log.d("start_scan", "oooo");
-
-            startForegroundService();
-
-            _overlaycarstate();
-        }
-
-
-        mainThread = new Thread(new MainThread());
-        mainThread.start();
-
-
-        if (setting.gUseBLE == true) {
-            setBleScan();  //me: original
-//            startPairingBluetooth();
-
-        } else {
-
-//            setBleScan();
-        }
-
-
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
     public void onCreate() {
         super.onCreate();
 
+        setBleScan();
 //        connectAM();
 
 //        startForegroundService();
@@ -181,6 +136,65 @@ public class AwindowService extends Service {
             windowManager = null;
         }
     }
+
+    public class ServiceBinder extends Binder {
+
+        public AwindowService getService() {
+            return AwindowService.this;
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return m_ServiceBinder;
+    }
+
+    public boolean onUnbind(Intent intent) {
+//        close();
+        return super.onUnbind(intent);
+    }
+
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        amBluetoothManager = new AMBluetoothManager(this, AwindowService.this);
+        ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+//        ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN);
+//        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            Log.d("log", "onStartCommand");
+
+            startForegroundService();
+
+            _overlaycarstate();
+        }
+
+
+//        mainThread = new Thread(new MainThread());
+//        mainThread.start();
+
+        //status: 블루투스 연결/ 디바이스 찾기
+        setBleScan();
+/**
+        if (setting.gUseBLE == true) {
+            setBleScan();  //me: original
+//            startPairingBluetooth();
+
+        } else {
+
+//            setBleScan();
+        }
+        **/
+
+
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+
 
     //status ---------- 앱위에 그리기 ----------
 
@@ -387,13 +401,14 @@ public class AwindowService extends Service {
         public void handleMessage(@NonNull Message msg) {
 //            Log.d("meterHandler_service", msg.what+"");
 
+            //status: 다른 앱 위에 그리기 상태설정
             if (msg.what == 100) {
+
                 if (setting.OVERLAY == false) {
                     showHideForgroundservice(false);
                 }else {
                     showHideForgroundservice(true);
                 }
-
             }
 
             //status: 블루투스 상태값
@@ -408,55 +423,95 @@ public class AwindowService extends Service {
                 //status: 빈차등 현재상태 수신값
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE) {
 
-                startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
-                callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);
-                etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);
+                startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);   //승차요금
+                callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);     //호출요금
+                etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);       //기타요금
 
+                //심야할증
+                if (AMBlestruct.AMReceiveFare.M_NIGHT_FARE.equals("1")) {  //있음
+                    //20% 더하기
+//                    nightFare =
+                }else if (AMBlestruct.AMReceiveFare.M_NIGHT_FARE.equals("0")) { //없음
+                    nightFare = 0;
+                }
+
+
+                if (AMBlestruct.AMReceiveFare.M_COMPLEX_FARE.equals("1")) {  //있음
+//                    complexFare =
+                }else if (AMBlestruct.AMReceiveFare.M_COMPLEX_FARE.equals("0")) {  //없음
+                    complexFare = 0;
+                }
+
+                //시외할증
+                if (AMBlestruct.AMReceiveFare.M_SUBURB_FARE.equals("1")) {   //있음
+//                    suburbFare = ""
+                }else if (AMBlestruct.AMReceiveFare.M_SUBURB_FARE.equals("0")) {  //없음
+                    suburbFare = 0;
+                }
+
+                //시외할증율%
+                suburbFareRate = Integer.parseInt(AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
+
+
+                //빈차등 요금 그대로 받기
                 if (AMBlestruct.AMReceiveFare.M_START_FARE != null) {
                     mfare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);
                 }else {
                     mfare = 0;
                 }
 
+
+
                 Log.d("btnTypeee", AMBlestruct.AMReceiveFare.M_STATE);
 
-                if (AMBlestruct.AMReceiveFare.M_STATE.equals("1")) {
+                if (AMBlestruct.AMReceiveFare.M_STATE.equals("1")) {  //지불
 
-                    Log.d("check_callFare-2", callFare+"");
+                    Log.d("btnTypeee-1", callFare+"");
 
-                    mfare = startFare + callFare + etcFare;
+//                    mfare = startFare + callFare + etcFare + nightFare + complexFare + suburbFare;  //더하지 말기 -> 빈차등 수신요금 그대로
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.PAY, mfare, startFare, callFare, etcFare);
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.PAY, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
 
-                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("2")) {
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("2")) { //빈차
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.EMPTY, mfare, startFare, callFare, etcFare);
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.EMPTY, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
 
-                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("3")) {
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("3")) { //주행
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.DRIVE, mfare, startFare, callFare, etcFare);
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.DRIVE, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
 
-                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("4")) {
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("4")) { //할증
 
                     Log.d("btntypeee", "호출");
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.CALL, mfare, startFare, callFare, etcFare);
+                    mCallback.serviceMeterState(AMBlestruct.MeterState.CALL, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
                 }
+
+
+                //빈차등수신(19) 데이터를 잘 받았을 경우 -> 응답코드(69) 보내기
+                if (AMBlestruct.AMReceiveFare.M_STATE != null) {
+                    if (amBluetoothManager != null) {
+                        amBluetoothManager.responseMeterState("69","00");
+                    }
+                }else {
+                    if (amBluetoothManager != null) {
+                        amBluetoothManager.responseMeterState("69","기타");
+                    }
+                }
+
+
                 //status: 빈차등 메뉴 수신값
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE) {
 
-                Log.d("메뉴버튼_메세지",AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE+"" );
-
-                ArrayList<String> arrList = new ArrayList<>(Arrays.asList(AMBlestruct.AMReceiveMenu.MENU_MSG.split("\n")));
-
-//                Log.d("arrList", arrList.toString());
-//                Log.d("arrList", arrList.size()+"");
+                Log.d("code43_msg",AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE+"" );  //아스키 49 -> 1:메뉴
 
                 mCallback.serviceMeterMenuState(AMBlestruct.AMReceiveMenu.MENU_MSG, AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE);
 
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_INPUT_MENU_STATE) {  //빈차등 수신메세지 입력값 보내기
 
                 Log.d("code46_msg", AMBlestruct.AMReceiveMenu.MENU_MSG);
+
+                Log.d("code46_inputtype", AMBlestruct.AMReceiveMenu.MENU_INPUT_TYPE);
 
                 mCallback.serviceMeterMenuState(AMBlestruct.AMReceiveMenu.MENU_MSG, AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE);
 
@@ -465,20 +520,31 @@ public class AwindowService extends Service {
     };
 
     //me: 버튼값 업데이트 -> 빈차등으로 보내기
-    public boolean update_BLEmeterstate(String sstate) {
+    public boolean update_BtnMeterstate(String sstate) {
         if (amBluetoothManager != null) {
+            Log.d("현재상태버튼값", sstate);
             amBluetoothManager.update_AMmeterstate(sstate);
         }
         return true;
     }
 
+
     public boolean menu_meterState(String requestCode, String menuType, String pos) {
-        Log.d("requestCode>", requestCode+", "+menuType);
+//        Log.d("requestCode>", requestCode+", "+menuType);
         if (amBluetoothManager != null) {
             amBluetoothManager.menu_AMmeterState(requestCode, menuType, pos);
         }
         return true;
     }
+
+    public boolean menu_input_meterState(String requestCode, String inputCheck, int inputLength, String inputMsg) {
+//        Log.d("requestCode---", requestCode+") "+inputCheck+", "+inputLength+", "+inputMsg);
+        if (amBluetoothManager != null) {
+            amBluetoothManager.menu_input_AMmeterState(requestCode, inputCheck, inputLength, inputMsg);
+        }
+        return true;
+    }
+
 
     class MainThread implements Runnable {
 

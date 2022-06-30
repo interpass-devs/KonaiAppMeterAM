@@ -40,9 +40,11 @@ public class AMBlestruct {
     public static final String B_CANCEL_PAY = "51"; //결제취소
     public static final String B_MENU = "" ;
 
-    public static String mSState = "00";  //미터기 현재상태
+    public static String mSState = "00";  //미터기 버튼 현재상태
+
     public static String menuBtnStatus = "1";  //0-닫기/ 1-열기
     public static boolean mbSStateupdated = false;
+    public static String appMeterResult;
 
     public static class AMReceiveMsg {
         public static int MSG_CUR_BLE_STATE = 1;
@@ -72,7 +74,12 @@ public class AMBlestruct {
         public static String M_START_FARE; //승차요금
         public static String M_CALL_FARE;  //호출요금
         public static String M_ETC_FARE;   //기타요금
-        public static String M_EXTRA_FARE_TYPE;  //할증여부
+        public static String M_EXTRA_FARE_TYPE;  //할증여부//이거이제 안씀
+        public static String M_NIGHT_FARE;  //심야할증여부
+        public static String M_COMPLEX_FARE;//복합할증여부
+        public static String M_SUBURB_FARE; //시계/시외할증여부
+
+
         public static String M_EXTRA_FARE_RATE;  //할증율
 
         public static String M_START_TIME;  //승차시간
@@ -103,7 +110,7 @@ public class AMBlestruct {
         public static byte MENU_MSG_TYPE;    //메세지 종류
         public static String MENU_MSG;         //메뉴 메세지
         public static String MENU_INPUT_TYPE;  //메뉴- 키패드 입력형식
-
+        public static String MENU_INPUT_LENGTH; //메뉴메세지 길이
     }
 
     synchronized public static void setSStateupdate(boolean bupdate)

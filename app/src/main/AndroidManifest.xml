@@ -47,7 +47,8 @@
         </provider>
         <activity
             android:name=".view.UpdateActivity"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
 <!--            <intent-filter>-->
 <!--                <action android:name="android.intent.action.MAIN" />-->
 
@@ -58,7 +59,8 @@
 
         <activity
             android:name=".view.AMMenuActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait"/>
 
         <service
             android:name=".service.AwindowService"
@@ -69,16 +71,19 @@
 
         <activity
             android:name=".view.DrawerBaseActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".view.InfoActivity"
-            android:exported="false" /> <!-- 가로버전 -->
+            android:exported="false"
+            android:screenOrientation="portrait"/> <!-- 가로버전 -->
         <!-- android:configChanges="orientation|screenSize|keyboardHidden" -->
         <!-- android:screenOrientation="sensor" -->
         <activity
             android:name=".view.MainActivity"
             android:configChanges="screenSize|keyboardHidden"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
