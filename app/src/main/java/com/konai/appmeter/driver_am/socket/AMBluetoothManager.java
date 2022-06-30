@@ -242,31 +242,17 @@ public class AMBluetoothManager {
                         //error///////////////////////////////////////////
                         //error: 페어링 연결다시 확인하기..
 
-                        connectBLE();  //me: original
-
-
                         //31 이상
-//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-//                            Log.d("versionCheck","31이상");
-//                            if (mBluetoothAdapter.isEnabled()) {
-//                                Log.d("versionCheck","bluetooth enable");
-////                                bleConnPermission();
-//                                connectBLE();
-//                            }else {
-//                                Log.d("versionCheck","bluetooth not enable");
-//                            }
-//
-//                        }else {
-//                            Log.d("versionCheck","31이상 아님");
-//                            if (mBluetoothAdapter.isEnabled()) {
-//                                Log.d("versionCheck","bluetooth enable");
-//                                //do nothing
-//                            }else {
-//                                Log.d("versionCheck","bluetooth not enable");
-//                                Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//                                startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-//                            }
-//                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            Log.d("versionCheck","31이상");
+                            if (mBluetoothAdapter.isEnabled()) {
+                                Log.d("versionCheck","bluetooth enable");
+                                connectBLE();  //me: original
+                            }else {
+                                Log.d("versionCheck","31이상!!!!!!!");
+                            }
+
+                        }
 
                         //error///////////////////////////////////////////////////////////
                     }

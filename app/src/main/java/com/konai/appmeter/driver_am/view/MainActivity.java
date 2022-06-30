@@ -12,10 +12,12 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -636,6 +638,7 @@ public class MainActivity extends AppCompatActivity {
                 bleConnPermission();
             }else {
                 Log.d("versionCheck","bluetooth not enable");
+                bleConnPermission();
             }
 
         }else {
@@ -643,6 +646,7 @@ public class MainActivity extends AppCompatActivity {
             if (mBluetoothAdapter.isEnabled()) {
                 Log.d("versionCheck","bluetooth enable");
                 //do nothing
+
             }else {
                 Log.d("versionCheck","bluetooth not enable");
                 enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -741,7 +745,16 @@ public class MainActivity extends AppCompatActivity {
                 //블루투스 활성화
                 case REQUEST_ENABLE_BT:
                     if (resultCode == RESULT_OK) {
-                        Toast.makeText(mContext, "블루투스 페어링", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(mContext, "블루투스 페어링", Toast.LENGTH_SHORT).show();
+                        if (windowService != null) {
+                            windowService.setBleScan();
+                        }
+
+//                        IntentFilter filter = new IntentFilter();
+//                        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+//                        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+//                        registerReceiver(mReceiver, filter);
+
 
                     } else if (resultCode == RESULT_CANCELED) {
                         Toast.makeText(mContext, "블루투스 설정을 거부하셨습니다.", Toast.LENGTH_SHORT).show();
@@ -761,6 +774,26 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+
+    public BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String action = intent.getAction();
+
+            if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                Log.d("mReceiver", "connected");
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                Log.d("mReceiver_device", device.getName() + "> " + device.getAddress());
+
+//                connectAM();
+
+            }else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                Log.d("mReceiver", "disconnected");
+            }
+        }
+    };
 
 
     //me: 메인화면에서는 보이지말고 앱 밖에서만 보이도록..

@@ -1,5 +1,7 @@
 package com.konai.appmeter.driver_am.service;
 
+import static androidx.core.app.ActivityCompat.startActivityForResult;
+
 import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -8,14 +10,12 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothSocket;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanResult;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Build;
@@ -30,7 +30,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -39,18 +38,10 @@ import com.konai.appmeter.driver_am.R;
 import com.konai.appmeter.driver_am.setting.AMBlestruct;
 import com.konai.appmeter.driver_am.setting.setting;
 import com.konai.appmeter.driver_am.socket.AMBluetoothManager;
-import com.konai.appmeter.driver_am.util.FontFitTextView;
 import com.konai.appmeter.driver_am.view.MainActivity;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 public class AwindowService extends Service {
 
@@ -81,16 +72,17 @@ public class AwindowService extends Service {
 
         //블루투스 수신상태
         void serviceBleStatus(boolean bleStatus);
+
         //미터기 버튼 수신상태
         void serviceMeterState(int btnType
-                            , int mFare
-                            , int startFare
-                            , int callFare
-                            , int etcFare
-                            , int nightFare
-                            , int complexFare
-                            , int suburbFare
-                            , int suburbFareRate);
+                , int mFare
+                , int startFare
+                , int callFare
+                , int etcFare
+                , int nightFare
+                , int complexFare
+                , int suburbFare
+                , int suburbFareRate);
 
         //미터기 메뉴 수신상태
         void serviceMeterMenuState(String menuMsg, int menuType);
@@ -180,20 +172,19 @@ public class AwindowService extends Service {
         //status: 블루투스 연결/ 디바이스 찾기
         setBleScan();
 /**
-        if (setting.gUseBLE == true) {
-            setBleScan();  //me: original
-//            startPairingBluetooth();
+ if (setting.gUseBLE == true) {
+ setBleScan();  //me: original
+ //            startPairingBluetooth();
 
-        } else {
+ } else {
 
-//            setBleScan();
-        }
-        **/
+ //            setBleScan();
+ }
+ **/
 
 
         return super.onStartCommand(intent, flags, startId);
     }
-
 
 
     //status ---------- 앱위에 그리기 ----------
@@ -232,7 +223,7 @@ public class AwindowService extends Service {
         }
         if (show == true) {
             mView.setVisibility(View.VISIBLE);
-        }else {
+        } else {
             mView.setVisibility(View.INVISIBLE);
         }
     }
@@ -335,13 +326,18 @@ public class AwindowService extends Service {
 
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
 
-//            Log.d("start_scan_device", "isEnabled");  //y
-//            Log.d("start_scan_device", setting.BLUETOOTH_DEVICE_NAME); //null
+            Log.d("start_scan_device", "isEnabled");  //y
+            Log.d("start_scan_device", setting.BLUETOOTH_DEVICE_NAME); //null
 
             //me: new
             startPairingBluetooth();
 
         }
+    }
+
+    class ClientThread extends Thread {
+
+
     }
 
 
@@ -373,12 +369,65 @@ public class AwindowService extends Service {
                 Log.d("deviceList_paired", setting.BLUETOOTH_DEVICE_NAME + ": " + setting.BLUETOOTH_DEVICE_ADDRESS);  //AM1010003: 3C:A5:51:85:1A:36
 
                 //status - 현재는 thread 없이 바로 갓서버에 연결
-
                 //gatt 서버에 연결
-                connectAM();
+                connectAM();  //me: original
+
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+                registerReceiver(mReceiver, filter);
             }
         }
     }
+
+    public BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String action = intent.getAction();
+
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+
+//                Log.d("mReceiver", "ACTION_STATE_CHANGED");
+
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+
+                switch (state) {
+
+                    case BluetoothAdapter.STATE_OFF:
+                        Log.d("-", "STATE_OFF");
+                        //31이하
+                        //다시 연결..
+//                        Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//                        intent.putExtra("enableBle","enableBle");
+//                        sendEnableBLEOrder(enableIntent);
+                        break;
+
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        Log.d("mReceiver", "STATE_TURNING_OFF");
+                        break;
+
+                    case  BluetoothAdapter.STATE_ON:
+                        Log.d("mReceiver", "STATE_ON");
+                        break;
+
+                    case BluetoothAdapter.STATE_TURNING_ON:
+                        Log.d("mReceiver", "STATE_TURNING_ON");
+                        break;
+                }
+            }
+
+//            if (BluetoothAdapter.STATE_ON == true ) {
+//                Log.d("mReceiver", "connected");
+//                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+//                Log.d("mReceiver_device", device.getName() + "> " + device.getAddress());
+//
+////                connectAM();
+//
+//            }else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+//                Log.d("mReceiver", "disconnected");
+//            }
+        }
+    };
 
     public boolean connectAM() {
 
@@ -392,6 +441,9 @@ public class AwindowService extends Service {
         }
         return true;
     }
+
+
+
 
 
 
@@ -415,8 +467,10 @@ public class AwindowService extends Service {
             else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE) {
 
                 if (setting.BLE_STATE == true) {
+                    Log.d("mR",setting.BLE_STATE+"");
                     mCallback.serviceBleStatus(true); //null obj??
                 }else {
+                    Log.d("mR",setting.BLE_STATE+"");
                     mCallback.serviceBleStatus(false);
                 }
 
