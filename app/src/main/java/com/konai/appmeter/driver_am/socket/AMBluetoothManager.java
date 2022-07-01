@@ -115,27 +115,13 @@ public class AMBluetoothManager {
         }
     }
 
-
-    public boolean connectAM(String deivceName, String deviceAddress) {
-        if (setting.gUseBLE) {
-            Log.d(ble, "connectAM at AMBluetoothManager");
-            return  connectBLE(deivceName, deviceAddress);
-        }
-        return true;
-    }
-
-
-
-    public boolean connectBLE(String deivceName, String deviceAddress) {
-
-        Log.d(ble, "connectAM at AMBluetoothManager - connectBLE " + deivceName+": "+ deviceAddress );
-
+    public boolean connectBLE(String deivceName, String deviceAddress)
+    {
         setting.BLUETOOTH_DEVICE_ADDRESS = deviceAddress;
         setting.BLUETOOTH_DEVICE_NAME = deivceName;
 
         //bluetooth manager
         if (mBluetoothManager == null) {
-
             mBluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
         }
 
@@ -143,6 +129,7 @@ public class AMBluetoothManager {
             Log.e(ble, "unable to initialize bluetooth manager"); //y
             return false;
         }
+
         //bluetooth adapter
         if (mBluetoothAdapter == null) {
             mBluetoothAdapter = mBluetoothManager.getAdapter();  //y
@@ -151,7 +138,7 @@ public class AMBluetoothManager {
         if (mBluetoothAdapter == null) {
             Log.e(ble,"unable to initialize bluetooth adapter");
             return false;
-        }else {
+        } else {
             Log.d(ble,"Able to initialize bluetooth adapter!"); //y
         }
 
@@ -165,14 +152,14 @@ public class AMBluetoothManager {
         if (mBluetoothDevice == null) {
             mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(deviceAddress);
             Log.e(ble, "bluetooth device null");
-        }else {
+        } else {
             Log.d(ble, "bluetooth device not null! "+deviceAddress);
         }
 
         if (mBluetoothDevice == null) {
             Log.e(ble, "device not found. unable to connect." );
 //            return false;
-        }else {
+        } else {
             Log.d(ble, deviceAddress+""); //3C:A5:51:85:1A:36
         }
 

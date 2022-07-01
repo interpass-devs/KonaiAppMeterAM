@@ -317,8 +317,7 @@ public class AwindowService extends Service {
                 //이 스레드가 해야할 작업 수행
                 //기기찾기 및 연결
             if (isRun)
-//                setBleScan();
-                startPairingBluetooth();
+                setBleScan();
 
                 //5초 동안 잠시대기
                 try {
@@ -353,6 +352,7 @@ public class AwindowService extends Service {
 
         final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
+        bluetoothDeviceSet = mBluetoothAdapter.getBondedDevices();
 
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
 
@@ -360,50 +360,80 @@ public class AwindowService extends Service {
             Log.d("start_scan_device", setting.BLUETOOTH_DEVICE_NAME); //null
 
             //me: new
-            startPairingBluetooth();
-
-        }
-    }
-
-
-    private void startPairingBluetooth() {
-        //error: 20220627
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-//            // TODO: Consider calling
-//            //    ActivityCompat#requestPermissions
-//            // here to request the missing permissions, and then overriding
-//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//            //                                          int[] grantResults)
-//            // to handle the case where the user grants the permission. See the documentation
-//            // for ActivityCompat#requestPermissions for more details.
-//            return;
-//        }
-        //error: 20220627
-        bluetoothDeviceSet = mBluetoothAdapter.getBondedDevices();
-
-        try{
-            for (BluetoothDevice device : bluetoothDeviceSet) {
-                String deviceName = device.getName();
-                String deviceAddress = device.getAddress();
-                deviceList.add(deviceName + ": " + deviceAddress);
+//            startPairingBluetooth();
+            try {
+                for (BluetoothDevice device : bluetoothDeviceSet)
+                {
+                    String deviceName = device.getName();
+                    String deviceAddress = device.getAddress();
+                    deviceList.add(deviceName + ": " + deviceAddress);
 //                Log.d("deviceList", deviceList + "");   //status - 기기들이 없을때 여기서 에러남
 
-                if (deviceName.contains("AM101")) {
-                    Log.d("deviceList_tobePaired", deviceName+":  " +deviceAddress);
+                    if (deviceName.contains("AM101"))
+                    {
+                        Log.d("deviceList_tobePaired", deviceName+":  " +deviceAddress);
 
-                    //gatt 서버에 연결
-                    connectAM(deviceName, deviceAddress);  //me: original
-
-//                    IntentFilter filter = new IntentFilter();
-//                    filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-//                    registerReceiver(mReceiver, filter);
+                        // gatt 서버에 연결
+                        if (amBluetoothManager != null)
+                        {
+                            //amBluetoothManager.connectAM(deivceName, deviceAddress);
+                            amBluetoothManager.connectBLE(deviceName, deviceAddress);
+                        }
+                        else
+                        {
+                        }
+                    }
                 }
+            }catch (Exception e) {
+                e.printStackTrace();
             }
-        }catch (Exception e) {
-            e.printStackTrace();
         }
-
     }
+
+
+//    private void startPairingBluetooth() {
+//        //error: 20220627
+////        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+////            // TODO: Consider calling
+////            //    ActivityCompat#requestPermissions
+////            // here to request the missing permissions, and then overriding
+////            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+////            //                                          int[] grantResults)
+////            // to handle the case where the user grants the permission. See the documentation
+////            // for ActivityCompat#requestPermissions for more details.
+////            return;
+////        }
+//        //error: 20220627
+//        bluetoothDeviceSet = mBluetoothAdapter.getBondedDevices();
+//
+//        try {
+//            for (BluetoothDevice device : bluetoothDeviceSet)
+//            {
+//                String deviceName = device.getName();
+//                String deviceAddress = device.getAddress();
+//                deviceList.add(deviceName + ": " + deviceAddress);
+////                Log.d("deviceList", deviceList + "");   //status - 기기들이 없을때 여기서 에러남
+//
+//                if (deviceName.contains("AM101"))
+//                {
+//                    Log.d("deviceList_tobePaired", deviceName+":  " +deviceAddress);
+//
+//                    // gatt 서버에 연결
+//                    if (amBluetoothManager != null)
+//                    {
+//                        //amBluetoothManager.connectAM(deivceName, deviceAddress);
+//                        amBluetoothManager.connectBLE(deviceName, deviceAddress);
+//                    }
+//                    else
+//                    {
+//                    }
+//                }
+//            }
+//        }catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
 
     //페어링을 확인하는 브로드캐스트리시버
     public BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -448,21 +478,6 @@ public class AwindowService extends Service {
 
         }
     };
-
-    public boolean connectAM(String deivceName, String deviceAddress) {
-
-        if (amBluetoothManager != null) {
-
-            Log.d("deviceList_","connectAM");
-
-            amBluetoothManager.connectAM(deivceName, deviceAddress);
-        }else {
-//            Log.d("connectAM","connectAM null");
-        }
-        return true;
-    }
-
-
 
     public void bluetoothConnState(boolean isConnected) {
         if (isConnected == false) {
