@@ -179,9 +179,9 @@ public class AMBluetoothManager {
         //connect to device
         //블루투스 페어링 - 기기와 연결하려면 GATT 서버에 연결해야함
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
+            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, true, mGattCallback, BluetoothDevice.TRANSPORT_LE);
         }else {
-            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mGattCallback);
+            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, true, mGattCallback);
         }
 
         mBluetoothAddress = deviceAddress;
@@ -213,7 +213,7 @@ public class AMBluetoothManager {
                         setting.BLE_STATE = true;
                         //status - 기기연결 성공
                         // 아이콘 변경 & 스레드 멈추기
-                        windowService.bluetoothConnState(true);
+//                        windowService.bluetoothConnState(true);
 //                        AMBlestruct.mSState = "00";
 //                        makepacketsend(AMBlestruct.APP_REQUEST_CODE);  //"15"   //현재상태 전송
                         Log.i(log+"ble", "Server discovery-> " + mBluetoothGatt.discoverServices());  //true
@@ -231,7 +231,7 @@ public class AMBluetoothManager {
                         setting.BLE_STATE = false;
                         //status - 기기연결이 끊어지면
                         // 스레드 다시시작 아이콘 변경 & 스레드 다시시작
-                        windowService.bluetoothConnState(false);
+//                        windowService.bluetoothConnState(false);
 
                     }
                 }

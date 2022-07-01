@@ -166,10 +166,10 @@ public class AwindowService extends Service {
 
 
         //status: 블루투스 연결/ 디바이스 찾기
-//        setBleScan();
+        setBleScan();
 
-        bluetoothConnectThread = new BluetoothConnectThread();
-        bluetoothConnectThread.start();
+//        bluetoothConnectThread = new BluetoothConnectThread();
+//        bluetoothConnectThread.start();
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -310,17 +310,19 @@ public class AwindowService extends Service {
         public void run() {
 //            super.run();  //아무의미 없음
 
-            while (isRun) {
+            while (true) {
 
                 Log.d(log, "bleThread start..");
 
                 //이 스레드가 해야할 작업 수행
                 //기기찾기 및 연결
-                setBleScan();
+            if (isRun)
+//                setBleScan();
+                startPairingBluetooth();
 
                 //5초 동안 잠시대기
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -328,6 +330,13 @@ public class AwindowService extends Service {
 
         }//run
 
+
+        //스레드를 종료하는 메소드
+        void startThread() {
+            isRun = true;
+            Log.d(log, "bleThread restarted.. ");
+//            mCallback.serviceBleStatus(true);   //status: 여기서 앱이 꺼짐
+        }
 
         //스레드를 종료하는 메소드
         void stopThread() {
@@ -459,8 +468,9 @@ public class AwindowService extends Service {
         if (isConnected == false) {
             Log.d("isConnected!", isConnected+"");
             //스레드 다시시작 & 아이콘 색 변경
-            bluetoothConnectThread = new BluetoothConnectThread();
-            bluetoothConnectThread.start();
+//            bluetoothConnectThread = new BluetoothConnectThread();
+//            bluetoothConnectThread.start();
+            bluetoothConnectThread.startThread();
         }else {
             Log.d("isConnected!", isConnected+"");
             //스레드 멈춤 & 아이콘 색 변경
