@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.io.UnsupportedEncodingException;
 
 public class AMBluetoothManager {
 
@@ -421,7 +422,8 @@ public class AMBluetoothManager {
 
         AMBlestruct.AMReceiveMenu.MENU_INPUT_TYPE = inputCheck;  //입력여부
 
-        AMBlestruct.AMReceiveMenu.MENU_INPUT_LENGTH = inputLength+"";
+//        AMBlestruct.AMReceiveMenu.MENU_INPUT_LENGTH = inputLength+"";
+        AMBlestruct.AMReceiveMenu.MENU_INPUT_LENGTH = String.format("%02d", inputLength);
 
         AMBlestruct.MenuType.MENU_CONTENT = inputMsg;  //알림창에 입력한 내용
 //
@@ -682,102 +684,106 @@ public class AMBluetoothManager {
     }
 
 
-    synchronized public void parsingend_AMBle(byte[] outdata, int packetlen) {
+    synchronized public void parsingend_AMBle(byte[] outdata, int packetlen)
+    {
+        byte[] bytePacket = new byte[packetlen];
+        System.arraycopy(outdata, 0, bytePacket, 0, packetlen);
 
-        String code = outpkt.GetCheckCode(outdata);
+        // for Debug
+        String strPacket=null;
+        try {
+            strPacket = new String(bytePacket, "KSC5601"); // 수신된 데이터 스트링으로 변환
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        Log.d("strPacket", strPacket);
+        // end
 
-        Log.d("getCode", code);  //menu- 42
+        String rcvCode = getString(bytePacket, 1, 2);
+        Log.d("getCode", rcvCode);  //menu- 42
 
-        if(outpkt.GetAMBleCRC(outdata, packetlen).equals(String.format("%c%c", outdata[packetlen -3], outdata[packetlen - 2])) == false)
+        // 아래 코드 확인 필요.
+        if (outpkt.GetAMBleCRC(outdata, packetlen).equals(String.format("%c%c", outdata[packetlen -3], outdata[packetlen - 2])) == false)
         {
-            Log.d("parsing_", "========receive(" + code + ")" + outpkt.GetAMBleCRC(outdata, packetlen)
+            Log.d("parsing_", "========receive(" + rcvCode + ")" + outpkt.GetAMBleCRC(outdata, packetlen)
                     + "  " + String.format("-------%c%c", outdata[packetlen -3], outdata[packetlen - 2]));
         }
 
-        outpkt.SetPoint(3);  //날짜시간 부터 시작
+        // 수신날짜
+        String rcvDate = getString(bytePacket, 3, 12);
 
+        switch (rcvCode)
+        {
+        case AMBlestruct.METER_REQUEST_CODE: // "19" 택시요금수신, 미터기모드 응답
+            AMBlestruct.AMReceiveFare.M_RECEIVE_TIME = rcvDate;                                     // 날짜시간
+            AMBlestruct.AMReceiveFare.M_CARNUM = getString(bytePacket, 17, 12);         // 차량번호
+            AMBlestruct.AMReceiveFare.M_STATE = getString(bytePacket, 29, 1);           // 버튼값   //ME: 여기서 받은 버튼값을 MainActivity 에서 확인하여 화면전환..
+            AMBlestruct.AMReceiveFare.M_START_FARE = getString(bytePacket, 30, 6);      // 승차요금
+            AMBlestruct.AMReceiveFare.M_CALL_FARE = getString(bytePacket, 36, 4);       // 호출요금
+            AMBlestruct.AMReceiveFare.M_ETC_FARE = getString(bytePacket, 40, 6);        // 기타요금
+            AMBlestruct.AMReceiveFare.M_NIGHT_FARE = getString(bytePacket, 46, 1);      // 심야할증여부
+            AMBlestruct.AMReceiveFare.M_COMPLEX_FARE = getString(bytePacket, 47, 1);    // 복합할증여부
+            AMBlestruct.AMReceiveFare.M_SUBURB_FARE = getString(bytePacket, 48, 1);     // 시계할증여부
+            AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = getString(bytePacket, 49, 3); // 할증율
 
-        switch (code) {
+//                AMBlestruct.AMReceiveFare.M_START_FARE = outpkt.GetString(outdata, 6);  //승차요금
+//                AMBlestruct.AMReceiveFare.M_CALL_FARE = outpkt.GetString(outdata, 4);   //호출요금
+//                AMBlestruct.AMReceiveFare.M_ETC_FARE = outpkt.GetString(outdata, 6);    //기타요금
+//                AMBlestruct.AMReceiveFare.M_NIGHT_FARE = outpkt.GetString(outdata, 1); //심야할증여부
+//                AMBlestruct.AMReceiveFare.M_COMPLEX_FARE = outpkt.GetString(outdata, 1); //복합할증여부
+//                AMBlestruct.AMReceiveFare.M_SUBURB_FARE = outpkt.GetString(outdata, 1); //시계할증여부
+//                AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = outpkt.GetString(outdata, 3); //할증율
+//
+//                //나중에 사용
+//                AMBlestruct.AMReceiveFare.M_START_TIME = outpkt.GetString(outdata, 14);  //승차시간
+//                AMBlestruct.AMReceiveFare.M_START_X = outpkt.GetString(outdata, 14);    //승차좌표-X
+//                AMBlestruct.AMReceiveFare.M_START_Y = outpkt.GetString(outdata, 14);    //승차좌표-Y
+//                AMBlestruct.AMReceiveFare.M_END_X = outpkt.GetString(outdata, 14);      //하차좌표-X
+//                AMBlestruct.AMReceiveFare.M_END_Y = outpkt.GetString(outdata, 14);      //하차좌표-Y
+//                AMBlestruct.AMReceiveFare.M_START_DISTANCE = outpkt.GetString(outdata, 14);  //승차거리
+//                AMBlestruct.AMReceiveFare.M_EMPTY_DISTANCE = outpkt.GetString(outdata, 14);  //빈차거리
+//
+//                Log.d("meter_getCode_", "--------------------------------------");
+//                Log.d("meter_getCode_버튼값", AMBlestruct.AMReceiveFare.M_STATE);
+//                Log.d("meter_getCode_승차", AMBlestruct.AMReceiveFare.M_START_FARE);
+//                Log.d("meter_getCode_호출", AMBlestruct.AMReceiveFare.M_CALL_FARE);
+//                Log.d("meter_getCode_심야할증", AMBlestruct.AMReceiveFare.M_NIGHT_FARE);
+//                Log.d("meter_getCode_복합할증", AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
+//                Log.d("meter_getCode_시외할증", AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
+//                Log.d("meter_getCode_할증율", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
 
-            case AMBlestruct.METER_REQUEST_CODE: //"19"  //택시요금수신, 미터기모드 응답
-//                outpkt.SetPoint(17);
-                AMBlestruct.AMReceiveFare.M_RECEIVE_TIME = outpkt.GetString(outdata, 14);  //날짜시간
-                AMBlestruct.AMReceiveFare.M_CARNUM = outpkt.GetString(outdata, 12);     //차량번호
-                AMBlestruct.AMReceiveFare.M_STATE = outpkt.GetString(outdata, 1);        //버튼값   //ME: 여기서 받은 버튼값을 MainActivity 에서 확인하여 화면전환..
+            //버튼값 절달 --> windowService --> mainActivity(mCallback)
+            windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE);
+            break;
 
-                AMBlestruct.AMReceiveFare.M_START_FARE = outpkt.GetString(outdata, 6);  //승차요금
-                AMBlestruct.AMReceiveFare.M_CALL_FARE = outpkt.GetString(outdata, 4);   //호출요금
-                AMBlestruct.AMReceiveFare.M_ETC_FARE = outpkt.GetString(outdata, 6);    //기타요금
-                AMBlestruct.AMReceiveFare.M_NIGHT_FARE = outpkt.GetString(outdata, 1); //심야할증여부
-                AMBlestruct.AMReceiveFare.M_COMPLEX_FARE = outpkt.GetString(outdata, 1); //복합할증여부
-                AMBlestruct.AMReceiveFare.M_SUBURB_FARE = outpkt.GetString(outdata, 1); //시계할증여부
-                AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = outpkt.GetString(outdata, 3); //할증율
+        case AMBlestruct.METER_MENU_REQUEST_CODE:  // "42" - 미터기 메뉴 응답
+            AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME = rcvDate;                                      // 날짜시간
+            AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE = getInt(bytePacket, 17, 1);            // 메세지 종류
+            AMBlestruct.AMReceiveMenu.MENU_MSG = getString(bytePacket, 18, packetlen-21);   // 메시지 ** 전문 수정 필요.
 
-                //나중에 사용
-                AMBlestruct.AMReceiveFare.M_START_TIME = outpkt.GetString(outdata, 14);  //승차시간
-                AMBlestruct.AMReceiveFare.M_START_X = outpkt.GetString(outdata, 14);    //승차좌표-X
-                AMBlestruct.AMReceiveFare.M_START_Y = outpkt.GetString(outdata, 14);    //승차좌표-Y
-                AMBlestruct.AMReceiveFare.M_END_X = outpkt.GetString(outdata, 14);      //하차좌표-X
-                AMBlestruct.AMReceiveFare.M_END_Y = outpkt.GetString(outdata, 14);      //하차좌표-Y
-                AMBlestruct.AMReceiveFare.M_START_DISTANCE = outpkt.GetString(outdata, 14);  //승차거리
-                AMBlestruct.AMReceiveFare.M_EMPTY_DISTANCE = outpkt.GetString(outdata, 14);  //빈차거리
+//            Log.d("menu_getCode_","---------------------------------------");
+//            Log.d("menu_getCode_요청코드" , AMBlestruct.METER_MENU_REQUEST_CODE+"");
+//            Log.d("menu_getCode_메뉴종류" , AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE+"");  //49-> 0
+//            Log.d("menu_getCode_메뉴메세지" , AMBlestruct.AMReceiveMenu.MENU_MSG+"");
 
-                Log.d("meter_getCode_", "--------------------------------------");
-                Log.d("meter_getCode_버튼값", AMBlestruct.AMReceiveFare.M_STATE);
-                Log.d("meter_getCode_승차", AMBlestruct.AMReceiveFare.M_START_FARE);
-                Log.d("meter_getCode_호출", AMBlestruct.AMReceiveFare.M_CALL_FARE);
-                Log.d("meter_getCode_심야할증", AMBlestruct.AMReceiveFare.M_NIGHT_FARE);
-                Log.d("meter_getCode_복합할증", AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
-                Log.d("meter_getCode_시외할증", AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
-                Log.d("meter_getCode_할증율", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
+            windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE);
+            break;
 
-                //버튼값 절달 --> windowService --> mainActivity(mCallback)
-                windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE);
+        case AMBlestruct.METER_MENU_INPUT_REQUEST_CODE: // "46" - 숫자입력 응답.
+            AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME =  rcvDate;                                      // 날짜시간
+            AMBlestruct.AMReceiveMenu.MENU_INPUT_TYPE = getString(bytePacket, 17, 1);        // 메세지 종류
+            AMBlestruct.AMReceiveMenu.MENU_MSG = getString(bytePacket, 18, packetlen-21);    // 메시지 ** 전문 수정 필요.
 
-                break;
+//            Log.d("menu_getCode_","---------------------------------------");
+//            Log.d("menu_getCode_요청코드", AMBlestruct.METER_MENU_INPUT_REQUEST_CODE);
+//            Log.d("menu_getCode_날짜시간", AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME);
+//            Log.d("menu_getCode_입력타입", AMBlestruct.AMReceiveMenu.MENU_INPUT_TYPE);  //0-일반숫자/ 1-비밀번호입력(숫자를 *로 표시)
+//            Log.d("menu_getCode_입력메세지", AMBlestruct.AMReceiveMenu.MENU_MSG);
 
-            case AMBlestruct.METER_MENU_REQUEST_CODE:  //"42"- 미터기 메뉴 응답
-
-                outpkt.SetPoint(1);
-
-                AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME = outpkt.GetString(outdata, 14); //날짜시간
-                AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE = outpkt.Getbyte(outdata);  //메세지 종류
-                AMBlestruct.AMReceiveMenu.MENU_MSG = outpkt.Gettextbytoken(outdata, (byte) 0x03, packetlen, -2);  //outDataIndex-21 =>  88-21 = n
-
-                Log.d("menu_getCode_","---------------------------------------");
-                Log.d("menu_getCode_요청코드" , AMBlestruct.METER_MENU_REQUEST_CODE+"");
-                Log.d("menu_getCode_메뉴종류" , AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE+"");  //49-> 0
-                Log.d("menu_getCode_메뉴메세지" , AMBlestruct.AMReceiveMenu.MENU_MSG+"");
-
-                windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE);
-                break;
-
-            case AMBlestruct.METER_MENU_INPUT_REQUEST_CODE: //"46" - 날짜입력 응답.
-
-                AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME = outpkt.GetString(outdata, 14);
-                AMBlestruct.AMReceiveMenu.MENU_INPUT_TYPE = outpkt.GetString(outdata, 1);
-                AMBlestruct.AMReceiveMenu.MENU_MSG = outpkt.Gettextbytoken(outdata, (byte) 0x03, packetlen, -2);  // outDataIndex - n = ?
-
-                Log.d("menu_getCode_","---------------------------------------");
-                Log.d("menu_getCode_요청코드", AMBlestruct.METER_MENU_INPUT_REQUEST_CODE);
-                Log.d("menu_getCode_날짜시간", AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME);
-                Log.d("menu_getCode_입력타입", AMBlestruct.AMReceiveMenu.MENU_INPUT_TYPE);  //0-일반숫자/ 1-비밀번호입력(숫자를 *로 표시)
-                Log.d("menu_getCode_입력메세지", AMBlestruct.AMReceiveMenu.MENU_MSG);
-
-                windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_INPUT_MENU_STATE);
-                break;
-
-
+            windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_INPUT_MENU_STATE);
+            break;
         }
-
     }
-
-
-
-
-
-
-
 
     private String getCurDateString()
     {
@@ -788,7 +794,42 @@ public class AMBluetoothManager {
         return format1.format(time.getTime());
     }
 
+    private String getString(byte[] byteSrc, int Start, int Length)
+    {
+        String strTemp=null;
+        byte[] byteTemp = new byte[Length];
 
+        // 임시 바이트 배열에 잘라 복사
+        System.arraycopy(byteSrc, Start, byteTemp, 0, Length);
+
+        // 스트링으로 변환(한글코드 포함)
+        try {
+            strTemp = new String(byteTemp, "KSC5601");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        return strTemp;
+    }
+
+    private int getInt(byte[] byteSrc, int Start, int Length)
+    {
+        String strTemp=null;
+        byte[] byteTemp = new byte[Length];
+
+        // 임시 바이트 배열에 잘라 복사
+        System.arraycopy(byteSrc, Start, byteTemp, 0, Length);
+
+        strTemp = new String(byteTemp);
+//        // 스트링으로 변환(한글코드 포함)
+//        try {
+//            strTemp = new String(byteTemp, "KSC5601");
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
+
+        return Integer.parseInt(strTemp);
+    }
 }
 
 

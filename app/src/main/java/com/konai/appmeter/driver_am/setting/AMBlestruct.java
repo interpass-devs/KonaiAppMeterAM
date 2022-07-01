@@ -107,7 +107,7 @@ public class AMBlestruct {
     public static class AMReceiveMenu {
 
         public static String MENU_RECEIVE_TIME; //날짜시간
-        public static byte MENU_MSG_TYPE;    //메세지 종류
+        public static int MENU_MSG_TYPE;    //메세지 종류
         public static String MENU_MSG;         //메뉴 메세지
         public static String MENU_INPUT_TYPE;  //메뉴- 키패드 입력형식
         public static String MENU_INPUT_LENGTH; //메뉴메세지 길이
