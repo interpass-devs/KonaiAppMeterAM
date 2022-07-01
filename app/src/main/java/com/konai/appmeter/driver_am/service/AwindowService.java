@@ -45,6 +45,7 @@ import java.util.Set;
 
 public class AwindowService extends Service {
 
+    public static BluetoothConnectThread bluetoothConnectThread;
     String log = "log_WindowService";
     private Handler mHandler;
     private LocationManager locationManager;
@@ -75,14 +76,14 @@ public class AwindowService extends Service {
 
         //미터기 버튼 수신상태
         void serviceMeterState(int btnType
-                , int mFare
-                , int startFare
-                , int callFare
-                , int etcFare
-                , int nightFare
-                , int complexFare
-                , int suburbFare
-                , int suburbFareRate);
+                            , int mFare
+                            , int startFare
+                            , int callFare
+                            , int etcFare
+                            , int nightFare
+                            , int complexFare
+                            , int suburbFare
+                            , int suburbFareRate);
 
         //미터기 메뉴 수신상태
         void serviceMeterMenuState(String menuMsg, int menuType);
@@ -103,12 +104,10 @@ public class AwindowService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        setBleScan();
-//        connectAM();
+//        setBleScan();
 
-//        startForegroundService();
-
-//        _overlaycarstate();
+//        bluetoothConnectThread = new BluetoothConnectThread();
+//        bluetoothConnectThread.start();
     }
 
 
@@ -166,22 +165,11 @@ public class AwindowService extends Service {
         }
 
 
-//        mainThread = new Thread(new MainThread());
-//        mainThread.start();
-
         //status: 블루투스 연결/ 디바이스 찾기
-        setBleScan();
-/**
- if (setting.gUseBLE == true) {
- setBleScan();  //me: original
- //            startPairingBluetooth();
+//        setBleScan();
 
- } else {
-
- //            setBleScan();
- }
- **/
-
+        bluetoothConnectThread = new BluetoothConnectThread();
+        bluetoothConnectThread.start();
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -314,12 +302,45 @@ public class AwindowService extends Service {
         }
     }
 
+    public class BluetoothConnectThread extends Thread {
+
+        boolean isRun = true;
+
+        @Override
+        public void run() {
+//            super.run();  //아무의미 없음
+
+            while (isRun) {
+
+                Log.d(log, "bleThread start..");
+
+                //이 스레드가 해야할 작업 수행
+                //기기찾기 및 연결
+                setBleScan();
+
+                //5초 동안 잠시대기
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }//while
+
+        }//run
+
+
+        //스레드를 종료하는 메소드
+        void stopThread() {
+            isRun = false;
+            Log.d(log, "bleThread stopped.. ");
+//            mCallback.serviceBleStatus(true);   //status: 여기서 앱이 꺼짐
+        }
+    }//bluetoothConnectThread
+
 
     //status --- 블루투스 -------------
 
     public void setBleScan() {
-
-        mHandler = new Handler();
 
         final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
@@ -333,11 +354,6 @@ public class AwindowService extends Service {
             startPairingBluetooth();
 
         }
-    }
-
-    class ClientThread extends Thread {
-
-
     }
 
 
@@ -356,29 +372,31 @@ public class AwindowService extends Service {
         //error: 20220627
         bluetoothDeviceSet = mBluetoothAdapter.getBondedDevices();
 
-        for (BluetoothDevice device : bluetoothDeviceSet) {
-            String deviceName = device.getName();
-            String deviceAddress = device.getAddress();
-            deviceList.add(deviceName + ": " + deviceAddress);
-            Log.d("deviceList", deviceList + "");   //status - 여러가지 등록된 블루투스 기기들이 있을 경우 하나만 페어링 되게 설정이 안되어있음..
+        try{
+            for (BluetoothDevice device : bluetoothDeviceSet) {
+                String deviceName = device.getName();
+                String deviceAddress = device.getAddress();
+                deviceList.add(deviceName + ": " + deviceAddress);
+//                Log.d("deviceList", deviceList + "");   //status - 기기들이 없을때 여기서 에러남
 
-            if (deviceName.contains("AM101")) {
-                Log.d("deviceList_tobePaired", deviceName);
-                setting.BLUETOOTH_DEVICE_NAME = deviceName;
-                setting.BLUETOOTH_DEVICE_ADDRESS = deviceAddress;
-                Log.d("deviceList_paired", setting.BLUETOOTH_DEVICE_NAME + ": " + setting.BLUETOOTH_DEVICE_ADDRESS);  //AM1010003: 3C:A5:51:85:1A:36
+                if (deviceName.contains("AM101")) {
+                    Log.d("deviceList_tobePaired", deviceName+":  " +deviceAddress);
 
-                //status - 현재는 thread 없이 바로 갓서버에 연결
-                //gatt 서버에 연결
-                connectAM();  //me: original
+                    //gatt 서버에 연결
+                    connectAM(deviceName, deviceAddress);  //me: original
 
-                IntentFilter filter = new IntentFilter();
-                filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-                registerReceiver(mReceiver, filter);
+//                    IntentFilter filter = new IntentFilter();
+//                    filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+//                    registerReceiver(mReceiver, filter);
+                }
             }
+        }catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
+    //페어링을 확인하는 브로드캐스트리시버
     public BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -394,7 +412,7 @@ public class AwindowService extends Service {
                 switch (state) {
 
                     case BluetoothAdapter.STATE_OFF:
-                        Log.d("-", "STATE_OFF");
+                        Log.d("mReceiver", "STATE_OFF");
                         //31이하
                         //다시 연결..
 //                        Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -404,10 +422,13 @@ public class AwindowService extends Service {
 
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         Log.d("mReceiver", "STATE_TURNING_OFF");
+                        bluetoothConnectThread = new BluetoothConnectThread();
+                        bluetoothConnectThread.start();
                         break;
 
                     case  BluetoothAdapter.STATE_ON:
                         Log.d("mReceiver", "STATE_ON");
+                        bluetoothConnectThread.stopThread();
                         break;
 
                     case BluetoothAdapter.STATE_TURNING_ON:
@@ -416,26 +437,16 @@ public class AwindowService extends Service {
                 }
             }
 
-//            if (BluetoothAdapter.STATE_ON == true ) {
-//                Log.d("mReceiver", "connected");
-//                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-//                Log.d("mReceiver_device", device.getName() + "> " + device.getAddress());
-//
-////                connectAM();
-//
-//            }else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
-//                Log.d("mReceiver", "disconnected");
-//            }
         }
     };
 
-    public boolean connectAM() {
+    public boolean connectAM(String deivceName, String deviceAddress) {
 
         if (amBluetoothManager != null) {
 
             Log.d("deviceList_","connectAM");
 
-            amBluetoothManager.connectAM();
+            amBluetoothManager.connectAM(deivceName, deviceAddress);
         }else {
 //            Log.d("connectAM","connectAM null");
         }
@@ -443,6 +454,19 @@ public class AwindowService extends Service {
     }
 
 
+
+    public void bluetoothConnState(boolean isConnected) {
+        if (isConnected == false) {
+            Log.d("isConnected!", isConnected+"");
+            //스레드 다시시작 & 아이콘 색 변경
+            bluetoothConnectThread = new BluetoothConnectThread();
+            bluetoothConnectThread.start();
+        }else {
+            Log.d("isConnected!", isConnected+"");
+            //스레드 멈춤 & 아이콘 색 변경
+            bluetoothConnectThread.stopThread();
+        }
+    }
 
 
 
@@ -466,18 +490,32 @@ public class AwindowService extends Service {
             //status: 블루투스 상태값
             else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE) {
 
-                if (setting.BLE_STATE == true) {
-                    Log.d("mR",setting.BLE_STATE+"");
-                    mCallback.serviceBleStatus(true); //null obj??
-                }else {
-                    Log.d("mR",setting.BLE_STATE+"");
-                    mCallback.serviceBleStatus(false);
+                try{
+                    if (setting.BLE_STATE == true) {
+                        Log.d(log, "ble_conn- " + setting.BLE_STATE);
+//                    mCallback.serviceBleStatus(true); //null obj??
+//                    bluetoothConnectThread = new BluetoothConnectThread()
+                        bluetoothConnectThread.stopThread();
+//                        bluetoothConnectThread.stop();
+
+                    }else {
+                        Log.d(log, "ble_conn- " + setting.BLE_STATE);
+//                    mCallback.serviceBleStatus(false);
+
+                        //스레드 다시시작 & 아이콘 색 변경
+//                        bluetoothConnectThread = new BluetoothConnectThread();
+                        bluetoothConnectThread.start();
+
+                    }
+                }catch (Exception e) {
+                    e.printStackTrace();
                 }
+
 
                 //status: 빈차등 현재상태 수신값
             }else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE) {
 
-                startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);   //승차요금
+                startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);   //승차요금   //status: 여기서 앱 꺼짐
                 callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);     //호출요금
                 etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);       //기타요금
 
@@ -598,6 +636,11 @@ public class AwindowService extends Service {
         }
         return true;
     }
+
+
+
+
+
 
 
     class MainThread implements Runnable {

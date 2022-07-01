@@ -123,8 +123,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void serviceBleStatus(boolean bleStatus) {
 
+            Log.d("bleconnnn","bleStatus: "+bleStatus);
+
             //블루투스 상태값 변경
-            display_bleStatus(bleStatus);
+//            setBluetoothIconChanged(bleStatus);
         }
 
         @Override
@@ -199,10 +201,8 @@ public class MainActivity extends AppCompatActivity {
                 btn_main_status.setTextColor(getResources().getColor(R.color.orange));
 
             } else if (btnType == AMBlestruct.MeterState.EMPTY) {
-                Log.d("btnType","empty");
                 main_all_layout.setVisibility(View.VISIBLE);
                 main_layout.setVisibility(View.VISIBLE);
-//                btn_empty.performClick();
                 btn_main_status.setText("빈차");
                 btn_main_status.setTextColor(getResources().getColor(R.color.white));
                 tv_add_pay.setVisibility(View.GONE);
@@ -212,12 +212,10 @@ public class MainActivity extends AppCompatActivity {
 
 
             } else if (btnType == AMBlestruct.MeterState.DRIVE) {
-//                btn_drive.performClick();
                 btn_main_status.setText("주행");
                 btn_main_status.setTextColor(getResources().getColor(R.color.yellow));
 
             } else if (btnType == AMBlestruct.MeterState.CALL) {  //호출대신 주행이 불려짐.. i don't know why.
-//                btn_call.performClick();
                 btn_main_status.setText("호출");
                 tv_rescall_pay.setVisibility(View.VISIBLE);
                 tv_rescall_pay.setText(AMBlestruct.AMReceiveFare.M_CALL_FARE);
@@ -230,13 +228,6 @@ public class MainActivity extends AppCompatActivity {
             
             //빈차등에서 메뉴 -> 빈차 클릭시 = 초기화시킴
             if (menuType == 48) {
-                Log.d("menuType@@", menuType+"");
-//                main_all_layout.setVisibility(View.VISIBLE);
-//                main_layout.setVisibility(View.VISIBLE);
-//                menu_main_layout.setVisibility(View.GONE);
-//                menuNumberPadLayout.setVisibility(View.GONE);
-//                add_fare_frame_layout.setVisibility(View.VISIBLE);
-                //trigger close btn
                 close_menu_btn.performClick();
                 menuNumberPadLayout.setVisibility(View.GONE);
                 menu_layout.setVisibility(View.GONE);
@@ -245,8 +236,6 @@ public class MainActivity extends AppCompatActivity {
             //받아온 빈차등 메뉴 리스트
             ArrayList<String> menuList = new ArrayList<>(Arrays.asList(menuMsg.split("\n")));
             Log.d("menulist", menuList.toString());
-            Log.d("menulist", menuList.size() + "");
-
 
             menuAdapter = new MenuAdapter(MainActivity.this, menuList);
 
@@ -262,7 +251,6 @@ public class MainActivity extends AppCompatActivity {
                 menu_input_text.setText("");
 
 //                선택목록 입력값 빈차등으로 보내기 "47" --> 입력창(menuNumberPadLayout)에서 보내기...
-//                windowService.
             }else {
 
                 menuNumberPadLayout.setVisibility(View.GONE);
@@ -296,9 +284,10 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
-    public void display_bleStatus(boolean ble) {
+
+    public void setBluetoothIconChanged(boolean ble) {
         if (ble == true) {
-            Log.d("bleconnnn", "bleconnnn");
+            Log.d("현재아이콘", "ble connected");
             iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
             Toast.makeText(MainActivity.this, "빈차등 연결 성공", Toast.LENGTH_SHORT).show();
 
@@ -307,9 +296,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     //총 요금
     public void display_Runstate(String mFare) {
-//        tv_total_pay.setTextSize(4.0f * 2);
         tv_total_pay.setText(mFare);
     }
 
@@ -616,43 +605,36 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        //error: 20220630
-        /**
-        if (mBluetoothAdapter.isEnabled()) {
-            //안드로이드 api 31이상만 - 블루투스 연결 권한
-            bleConnPermission();
-        }else {
-            //안드로이드 api 31이하
-            Log.d("onResume", "bluetooth not able");
-            enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-        }
-        **/
-
 
         //31 이상
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Log.d("versionCheck","31이상");
-            if (mBluetoothAdapter.isEnabled()) {
-                Log.d("versionCheck","bluetooth enable");
-                bleConnPermission();
-            }else {
-                Log.d("versionCheck","bluetooth not enable");
-                bleConnPermission();
-            }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            Log.d("versionCheck","31이상");
+//            if (mBluetoothAdapter.isEnabled()) {
+//                Log.d("versionCheck","bluetooth enable");
+//                bleConnPermission();
+//            }else {
+//                Log.d("versionCheck","bluetooth not enable");
+//                bleConnPermission();
+//            }
+//
+//        }else {
+//            Log.d("versionCheck","31이상 아님");
+//            if (mBluetoothAdapter.isEnabled()) {
+//                Log.d("versionCheck","bluetooth enable");
+//                //do nothing
+//
+//            }else {
+//                Log.d("versionCheck","bluetooth not enable");
+//                enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//                startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+//            }
+//        }
 
-        }else {
-            Log.d("versionCheck","31이상 아님");
-            if (mBluetoothAdapter.isEnabled()) {
-                Log.d("versionCheck","bluetooth enable");
-                //do nothing
 
-            }else {
-                Log.d("versionCheck","bluetooth not enable");
-                enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-            }
-        }
+        bleConnPermission();
+
+
+
 
             getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
