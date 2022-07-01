@@ -683,7 +683,7 @@ public class AMBluetoothManager {
 
     }
 
-
+//xptmxm
     synchronized public void parsingend_AMBle(byte[] outdata, int packetlen)
     {
         byte[] bytePacket = new byte[packetlen];
