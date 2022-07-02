@@ -8,9 +8,9 @@ android {
     defaultConfig {
         applicationId "com.konai.appmeter.driver_am"
         minSdk 21
-        targetSdk 31
+        targetSdk 29
         versionCode 1
-        versionName "0.1"
+        versionName "0.02"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

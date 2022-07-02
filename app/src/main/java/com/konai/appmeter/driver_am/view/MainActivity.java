@@ -123,10 +123,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void serviceBleStatus(boolean bleStatus) {
 
-            Log.d("bleconnnn","bleStatus: "+bleStatus);
 
             //블루투스 상태값 변경
-//            setBluetoothIconChanged(bleStatus);
+            setBluetoothIconChanged(bleStatus);
         }
 
         @Override

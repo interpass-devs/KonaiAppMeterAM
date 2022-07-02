@@ -11,7 +11,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="220dp"
+        android:layout_height="250dp"
         android:orientation="vertical"
         android:layout_margin="50dp"
         android:background="@color/white"
@@ -21,10 +21,10 @@
             android:id="@+id/updateText"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:gravity="center|top"
+            android:gravity="center"
             android:text="업데이트 건이 있습니다.\n아아아아"
             android:textColor="@color/black"
-            android:textSize="25dp"/>
+            android:textSize="18dp"/>
         <TextView
             android:id="@+id/appVersion"
             android:layout_weight="0.3"
@@ -60,13 +60,13 @@
     </LinearLayout>
 
 
-<!--    <com.konai.appmeter.driver_am.util.FontFitTextView-->
-<!--        android:id="@+id/updateText"-->
-<!--        android:layout_width="fill_parent"-->
-<!--        android:layout_height="100dp"-->
-<!--        android:gravity="center"-->
-<!--        android:text="업데이트 Y or N"-->
-<!--        android:textColor="@color/yellow"/>-->
+    <!--    <com.konai.appmeter.driver_am.util.FontFitTextView-->
+    <!--        android:id="@+id/updateText"-->
+    <!--        android:layout_width="fill_parent"-->
+    <!--        android:layout_height="100dp"-->
+    <!--        android:gravity="center"-->
+    <!--        android:text="업데이트 Y or N"-->
+    <!--        android:textColor="@color/yellow"/>-->
     <ProgressBar
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/Loading"
@@ -74,16 +74,17 @@
         android:layout_height="30dip"
         android:layout_gravity="center"
         android:visibility="gone"/>
-<!--    <com.konai.appmeter.driver_am.util.ButtonFitText-->
-<!--        android:layout_width="fill_parent"-->
-<!--        android:layout_height="70dp"-->
-<!--        android:text="다운로드"-->
-<!--        android:id="@+id/downbtn"-->
-<!--        android:layout_margin="30dp"-->
-<!--        android:background="@drawable/yellow_gradi_btn"/>-->
+    <!--    <com.konai.appmeter.driver_am.util.ButtonFitText-->
+    <!--        android:layout_width="fill_parent"-->
+    <!--        android:layout_height="70dp"-->
+    <!--        android:text="다운로드"-->
+    <!--        android:id="@+id/downbtn"-->
+    <!--        android:layout_margin="30dp"-->
+    <!--        android:background="@drawable/yellow_gradi_btn"/>-->
 
 
     <com.konai.appmeter.driver_am.util.ButtonFitText
+        android:visibility="gone"
         android:id="@+id/moveToMainActivity"
         android:layout_width="90dp"
         android:layout_height="60dp"

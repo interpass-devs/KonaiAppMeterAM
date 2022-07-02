@@ -83,12 +83,14 @@
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/recycler_select_driver.xml" value="0.290625" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/menu/main_drawer_menu.xml" value="0.1890625" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.24" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/activity_update.xml" value="0.21875" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/mainbuttonframe3.xml" value="0.20572916666666666" />
         <entry key="..\:/Users/Interpass/AppData/Local/Android/Sdk/platforms/android-31/data/res/layout/simple_list_item_1.xml" value="0.21666666666666667" />
         <entry key="..\:/Users/sonata/StudioProjects/KonaiAppMeterAM/app/src/main/res/layout/mainframe1.xml" value="0.4244791666666667" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

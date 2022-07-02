@@ -196,6 +196,7 @@ public class AMBluetoothManager {
                         //앱그리기 숨기기 유무기능
                         setting.OVERLAY = false;
                         windowService.set_meterhandler.sendEmptyMessage(100);
+                        windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE);
 
                         setting.BLE_STATE = true;
                         //status - 기기연결 성공
@@ -213,8 +214,9 @@ public class AMBluetoothManager {
                         connectionState = STATE_DISCONNECTED;
                         broadcastUpdate(intentAction);
                         Log.e(log+"c", "disconnected to gatt server");
-                        Log.i(log, "Attempting to start service discovery-> " + mBluetoothGatt.discoverServices());
+//                        Log.i(log, "Attempting to start service discovery-> " + mBluetoothGatt.discoverServices());
 
+                        windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE);
                         setting.BLE_STATE = false;
                         //status - 기기연결이 끊어지면
                         // 스레드 다시시작 아이콘 변경 & 스레드 다시시작

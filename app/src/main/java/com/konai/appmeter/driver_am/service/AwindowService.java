@@ -518,18 +518,13 @@ public class AwindowService extends Service {
                 try{
                     if (setting.BLE_STATE == true) {
                         Log.d(log, "ble_conn- " + setting.BLE_STATE);
-//                    mCallback.serviceBleStatus(true); //null obj??
-//                    bluetoothConnectThread = new BluetoothConnectThread()
-                        bluetoothConnectThread.stopThread();
-//                        bluetoothConnectThread.stop();
+                    mCallback.serviceBleStatus(true); //null obj??
+
 
                     }else {
                         Log.d(log, "ble_conn- " + setting.BLE_STATE);
-//                    mCallback.serviceBleStatus(false);
+                    mCallback.serviceBleStatus(false);
 
-                        //스레드 다시시작 & 아이콘 색 변경
-//                        bluetoothConnectThread = new BluetoothConnectThread();
-                        bluetoothConnectThread.start();
 
                     }
                 }catch (Exception e) {
