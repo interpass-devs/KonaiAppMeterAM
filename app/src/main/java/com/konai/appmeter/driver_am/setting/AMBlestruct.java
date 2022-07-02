@@ -39,6 +39,8 @@ public class AMBlestruct {
     public static final String B_CLOSE = "50";      //후무
     public static final String B_CANCEL_PAY = "51"; //결제취소
     public static final String B_MENU = "" ;
+    public static  String B_ADDFARE= "" ;
+
 
     public static String mSState = "00";  //미터기 버튼 현재상태
 

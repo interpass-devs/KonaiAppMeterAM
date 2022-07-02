@@ -128,6 +128,8 @@ public class MainActivity extends AppCompatActivity {
             setBluetoothIconChanged(bleStatus);
         }
 
+
+
         @Override
         public void serviceMeterState(int btnType
                                     , int mFare
@@ -153,12 +155,19 @@ public class MainActivity extends AppCompatActivity {
                 tv_rescall_pay.setVisibility(View.GONE);
             }
 
-            //추가요금
-            if (addFareVal.equals("")) {
+            //수기요금
+            if (etcFare > 0) {
+                tv_add_pay.setVisibility(View.VISIBLE);
+                if (btnType == 5) {
+                    tv_add_pay.setText("수기 "+etcFare);
+                }else {
+                    tv_add_pay.setText("추가 "+etcFare);
+                }
 
             }else {
-
+                tv_add_pay.setVisibility(View.GONE);
             }
+
 
 
             //시외할증
@@ -226,10 +235,13 @@ public class MainActivity extends AppCompatActivity {
         public void serviceMeterMenuState(String menuMsg, int menuType) {
             
             //빈차등에서 메뉴 -> 빈차 클릭시 = 초기화시킴
-            if (menuType == 48) {
-                close_menu_btn.performClick();
+            if (menuType == 0) {
+//                close_menu_btn.performClick();
                 menuNumberPadLayout.setVisibility(View.GONE);
                 menu_layout.setVisibility(View.GONE);
+                main_all_layout.setVisibility(View.VISIBLE);
+                menu_main_layout.setVisibility(View.GONE);
+                return;
             }
 
             //받아온 빈차등 메뉴 리스트
@@ -1024,13 +1036,19 @@ public class MainActivity extends AppCompatActivity {
                         add_fare_frame_layout.setVisibility(View.GONE);
                         break;
                     case R.id.btn_ok: // 확인
-                        number_pad_layout.setVisibility(View.VISIBLE);
-                        main_layout.setVisibility(View.VISIBLE);
-                        menu_layout.setVisibility(View.GONE);
-                        number_pad_frame_layout.setVisibility(View.GONE);
-                        add_fare_frame_layout.setVisibility(View.GONE);
-                        tv_add_pay.setVisibility(View.VISIBLE);
-                        tv_add_pay.setText("추가 "+addFareVal);
+                        if (addFareVal.length() <= 6) {
+                            number_pad_layout.setVisibility(View.VISIBLE);
+                            main_layout.setVisibility(View.VISIBLE);
+                            menu_layout.setVisibility(View.GONE);
+                            number_pad_frame_layout.setVisibility(View.GONE);
+                            add_fare_frame_layout.setVisibility(View.GONE);
+                            add_fare_text.setVisibility(View.VISIBLE);
+//                            tv_add_pay.setText("추가 "+addFareVal);
+                            windowService.add_fareState("20", addFareVal);
+                        }else {
+                            Toast.makeText(mContext, "입력초과", Toast.LENGTH_SHORT).show();
+                        }
+
                         break;
                 }//switch
 
