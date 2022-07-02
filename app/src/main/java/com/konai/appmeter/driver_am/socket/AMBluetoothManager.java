@@ -202,11 +202,15 @@ public class AMBluetoothManager {
                         //status - 기기연결 성공
                         // 아이콘 변경 & 스레드 멈추기
 //                        windowService.bluetoothConnState(true);
+//                        try {
+//                            wait(1000);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
 //                        AMBlestruct.mSState = "00";
 //                        makepacketsend(AMBlestruct.APP_REQUEST_CODE);  //"15"   //현재상태 전송
                         Log.i(log+"ble", "Server discovery-> " + mBluetoothGatt.discoverServices());  //true
                         broadcastUpdate(intentAction);
-
 
 
                     }else if (newState == BluetoothProfile.STATE_DISCONNECTED) {

@@ -301,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("현재아이콘", "ble connected");
             iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
             Toast.makeText(MainActivity.this, "빈차등 연결 성공", Toast.LENGTH_SHORT).show();
+            windowService.update_BtnMeterstate("00");
 
         } else {
             iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
