@@ -85,12 +85,6 @@ public class MenuAdapter extends RecyclerView.Adapter {
         }else {
             //do nothing
         }
-
-//        if (items.size() == 1) {
-//            vh.numberPadLayout.setVisibility(View.VISIBLE);
-//        }else {
-//            vh.numberPadLayout.setVisibility(View.GONE);
-//        }
     }
 
     @Override

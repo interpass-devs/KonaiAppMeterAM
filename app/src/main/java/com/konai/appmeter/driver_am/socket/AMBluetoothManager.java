@@ -197,11 +197,8 @@ public class AMBluetoothManager {
                         setting.OVERLAY = false;
                         windowService.set_meterhandler.sendEmptyMessage(100);
                         windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE);
-
                         setting.BLE_STATE = true;
-                        //status - 기기연결 성공
-                        // 아이콘 변경 & 스레드 멈추기
-//                        windowService.bluetoothConnState(true);
+
 //                        try {
 //                            wait(1000);
 //                        } catch (InterruptedException e) {
@@ -209,6 +206,7 @@ public class AMBluetoothManager {
 //                        }
 //                        AMBlestruct.mSState = "00";
 //                        makepacketsend(AMBlestruct.APP_REQUEST_CODE);  //"15"   //현재상태 전송
+
                         Log.i(log+"ble", "Server discovery-> " + mBluetoothGatt.discoverServices());  //true
                         broadcastUpdate(intentAction);
 
@@ -217,14 +215,10 @@ public class AMBluetoothManager {
                         intentAction = ACTION_GATT_CONNECTED;
                         connectionState = STATE_DISCONNECTED;
                         broadcastUpdate(intentAction);
-                        Log.e(log+"c", "disconnected to gatt server");
-//                        Log.i(log, "Attempting to start service discovery-> " + mBluetoothGatt.discoverServices());
+                        Log.e(log+"ble", "disconnected to gatt server");
 
                         windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE);
                         setting.BLE_STATE = false;
-                        //status - 기기연결이 끊어지면
-                        // 스레드 다시시작 아이콘 변경 & 스레드 다시시작
-//                        windowService.bluetoothConnState(false);
 
                     }
                 }
@@ -356,9 +350,9 @@ public class AMBluetoothManager {
     {
         AMBlestruct.mSState = sstate;
         Log.d(log, "현재상태버튼값: "+sstate);
-        AMBlestruct.setSStateupdate(true);  //error: 20220630
 
         makepacketsend(AMBlestruct.APP_REQUEST_CODE); //"15"
+
     }
 
     public void add_fareState(String requestCode, String addFare) {
@@ -452,6 +446,7 @@ public class AMBluetoothManager {
 
         topkt.SetString(packetdata, topkt.GetAMBleCRC(packetdata));
         topkt.Setbyte(packetdata, (byte) 0x03);
+        Log.d("send_char","ttt");
         mData = new byte[topkt.point];
         System.arraycopy(packetdata, 0, mData, 0, topkt.point);
         write(mData);
@@ -672,6 +667,7 @@ public class AMBluetoothManager {
             AMBlestruct.AMReceiveFare.M_SUBURB_FARE = getString(bytePacket, 48, 1);     // 시계할증여부
             AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = getString(bytePacket, 49, 3); // 할증율
 
+            Log.d("받은버튼값",AMBlestruct.AMReceiveFare.M_STATE);
             Log.d("현재받은요금",AMBlestruct.AMReceiveFare.M_START_FARE );
             Log.d("현재추가요금", AMBlestruct.AMReceiveFare.M_ETC_FARE);
 //                AMBlestruct.AMReceiveFare.M_START_FARE = outpkt.GetString(outdata, 6);  //승차요금
@@ -682,7 +678,7 @@ public class AMBluetoothManager {
 //                AMBlestruct.AMReceiveFare.M_SUBURB_FARE = outpkt.GetString(outdata, 1); //시계할증여부
 //                AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = outpkt.GetString(outdata, 3); //할증율
 //
-//                //나중에 사용
+//                //나중에 사용---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //                AMBlestruct.AMReceiveFare.M_START_TIME = outpkt.GetString(outdata, 14);  //승차시간
 //                AMBlestruct.AMReceiveFare.M_START_X = outpkt.GetString(outdata, 14);    //승차좌표-X
 //                AMBlestruct.AMReceiveFare.M_START_Y = outpkt.GetString(outdata, 14);    //승차좌표-Y

@@ -538,7 +538,7 @@ public class AwindowService extends Service {
                 startFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_START_FARE);   //승차요금   //status: 여기서 앱 꺼짐
                 callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);     //호출요금
                 etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);       //기타요금/추가요금
-
+                complexFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
 
                 //심야할증
                 if (AMBlestruct.AMReceiveFare.M_NIGHT_FARE.equals("1")) {  //있음
@@ -548,16 +548,16 @@ public class AwindowService extends Service {
                     nightFare = 0;
                 }
 
-
+                //복합할증 요금
                 if (AMBlestruct.AMReceiveFare.M_COMPLEX_FARE.equals("1")) {  //있음
-//                    complexFare =
+                    complexFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
                 }else if (AMBlestruct.AMReceiveFare.M_COMPLEX_FARE.equals("0")) {  //없음
                     complexFare = 0;
                 }
 
                 //시외할증
                 if (AMBlestruct.AMReceiveFare.M_SUBURB_FARE.equals("1")) {   //있음
-//                    suburbFare = ""
+                    suburbFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
                 }else if (AMBlestruct.AMReceiveFare.M_SUBURB_FARE.equals("0")) {  //없음
                     suburbFare = 0;
                 }
