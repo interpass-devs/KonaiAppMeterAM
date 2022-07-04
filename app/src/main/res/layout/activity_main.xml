@@ -181,6 +181,7 @@
             android:gravity="center"
             android:maxLength="15"
             android:textSize="35sp"
+            android:clickable="false"
             android:textStyle="bold"
             android:textColor="@color/black"
             android:background="@drawable/white_round_background"

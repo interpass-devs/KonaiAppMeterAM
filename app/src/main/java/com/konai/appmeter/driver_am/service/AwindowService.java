@@ -151,7 +151,6 @@ public class AwindowService extends Service {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         amBluetoothManager = new AMBluetoothManager(this, AwindowService.this);
         ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
-//        ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN);
 //        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
 
 
@@ -512,6 +511,8 @@ public class AwindowService extends Service {
                 }
             }
 
+
+
             //status: 블루투스 상태값
             else if (msg.what == AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE) {
 
@@ -539,6 +540,8 @@ public class AwindowService extends Service {
                 callFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_CALL_FARE);     //호출요금
                 etcFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_ETC_FARE);       //기타요금/추가요금
                 complexFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
+                suburbFareRate = Integer.parseInt(AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
+                Log.d("rateCheck_1", suburbFareRate+"");
 
                 //심야할증
                 if (AMBlestruct.AMReceiveFare.M_NIGHT_FARE.equals("1")) {  //있음
@@ -556,14 +559,21 @@ public class AwindowService extends Service {
                 }
 
                 //시외할증
-                if (AMBlestruct.AMReceiveFare.M_SUBURB_FARE.equals("1")) {   //있음
+                if (AMBlestruct.AMReceiveFare.M_SUBURB_FARE != null) {   //있음
                     suburbFare = Integer.parseInt(AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
-                }else if (AMBlestruct.AMReceiveFare.M_SUBURB_FARE.equals("0")) {  //없음
+                }else {  //없음
                     suburbFare = 0;
                 }
 
-                //시외할증율%
-                suburbFareRate = Integer.parseInt(AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
+                //할증율%
+                if (AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE.equals("1")) {
+                    Log.d("rateCheck_", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE+"");
+                    suburbFareRate = Integer.parseInt(AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
+                    Log.d("rateCheck", suburbFareRate+"");
+                }else if (AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE.equals("0")) {
+                    suburbFareRate = 0;
+                }
+
 
 
                 //빈차등 요금 그대로 받기
@@ -636,10 +646,17 @@ public class AwindowService extends Service {
         }
     };
 
+    public boolean check_attendance(String requestCode, String driverId) {
+        if (amBluetoothManager != null) {
+            amBluetoothManager.sendAttendanceState(requestCode, driverId);
+        }
+        return true;
+    }
+
     //me: 버튼값 업데이트 -> 빈차등으로 보내기
     public boolean update_BtnMeterstate(String sstate) {
         if (amBluetoothManager != null) {
-            Log.d("현재상태버튼값", sstate);
+//            Log.d("현재상태버튼값", sstate);
             amBluetoothManager.update_AMmeterstate(sstate);
         }
         return true;
@@ -647,7 +664,7 @@ public class AwindowService extends Service {
 
     public boolean add_fareState(String requestCode, String addFare) {
         if (amBluetoothManager != null) {
-            Log.d("add_fare", requestCode);
+            Log.d("add_fare", requestCode+":  "+addFare);
             amBluetoothManager.add_fareState(requestCode, addFare);
         }
         return true;

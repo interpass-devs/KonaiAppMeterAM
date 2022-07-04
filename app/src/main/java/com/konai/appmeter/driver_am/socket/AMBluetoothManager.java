@@ -345,11 +345,18 @@ public class AMBluetoothManager {
     }
 
 
+    public void sendAttendanceState(String requestCode, String driverID) {
+        AMBlestruct.mSState = driverID;
+        Log.d("check_attendance",AMBlestruct.mSState);
+        makepacketsend("48");
+    }
+
+
     //me: 버튼값(빈차/주행/지불/호출) 업데이트 -> 빈차등으로 보내기
     public void update_AMmeterstate(String sstate)
     {
         AMBlestruct.mSState = sstate;
-        Log.d(log, "현재상태버튼값: "+sstate);
+//        Log.d(log, "현재상태버튼값: "+sstate);
 
         makepacketsend(AMBlestruct.APP_REQUEST_CODE); //"15"
 
@@ -357,6 +364,7 @@ public class AMBluetoothManager {
 
     public void add_fareState(String requestCode, String addFare) {
         AMBlestruct.B_ADDFARE = addFare;
+        Log.d("add_fare_check", AMBlestruct.B_ADDFARE);
         makepacketsend(requestCode);
     }
 
@@ -398,15 +406,13 @@ public class AMBluetoothManager {
 
         topkt.Setbyte(packetdata, (byte) 0x02);  //STX
 
-        Log.d(log, "현재=> "+requestCode+", "+AMBlestruct.mSState+", "+AMBlestruct.MenuType.MENU_CONTENT);
-
         switch (requestCode) {
 
             case AMBlestruct.APP_REQUEST_CODE:  //"15"
                 topkt.SetString(packetdata, AMBlestruct.APP_REQUEST_CODE);  //요청코드
                 topkt.SetString(packetdata, getCurDateString()); //날짜시간
                 topkt.SetString(packetdata, AMBlestruct.mSState);  //상태요청
-                Log.d("현재상태보냄=>  ", AMBlestruct.APP_REQUEST_CODE+",  "+getCurDateString()+",  "+AMBlestruct.mSState);
+                Log.d("15=>  ", AMBlestruct.APP_REQUEST_CODE+",  "+getCurDateString()+",  "+AMBlestruct.mSState);
                 break;
 
             case "69":
@@ -442,12 +448,20 @@ public class AMBluetoothManager {
                 topkt.SetString(packetdata,AMBlestruct.B_ADDFARE);
                 break;
 
+            case "48":
+                topkt.SetString(packetdata,"48");
+                topkt.SetString(packetdata,getCurDateString());
+                topkt.SetString(packetdata, AMBlestruct.mSState);
+                break;
+
         }
 
         topkt.SetString(packetdata, topkt.GetAMBleCRC(packetdata));
         topkt.Setbyte(packetdata, (byte) 0x03);
         Log.d("send_char","ttt");
         mData = new byte[topkt.point];
+        Log.d("mData", mData.toString());
+        Log.d("mData_packetdata", packetdata.toString());
         System.arraycopy(packetdata, 0, mData, 0, topkt.point);
         write(mData);
 
@@ -653,9 +667,12 @@ public class AMBluetoothManager {
         // 수신날짜
         String rcvDate = getString(bytePacket, 3, 12);
 
-        switch (rcvCode)
-        {
-        case AMBlestruct.METER_REQUEST_CODE: // "19" 택시요금수신, 미터기모드 응답
+        switch (rcvCode) {
+            case "98":
+//                Log.d("98_requestcode", getString(bytePacket, 14))
+                break;
+
+            case AMBlestruct.METER_REQUEST_CODE: // "19" 택시요금수신, 미터기모드 응답
             AMBlestruct.AMReceiveFare.M_RECEIVE_TIME = rcvDate;                                     // 날짜시간
             AMBlestruct.AMReceiveFare.M_CARNUM = getString(bytePacket, 17, 12);         // 차량번호
             AMBlestruct.AMReceiveFare.M_STATE = getString(bytePacket, 29, 1);           // 버튼값   //ME: 여기서 받은 버튼값을 MainActivity 에서 확인하여 화면전환..
@@ -667,9 +684,14 @@ public class AMBluetoothManager {
             AMBlestruct.AMReceiveFare.M_SUBURB_FARE = getString(bytePacket, 48, 1);     // 시계할증여부
             AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = getString(bytePacket, 49, 3); // 할증율
 
-            Log.d("받은버튼값",AMBlestruct.AMReceiveFare.M_STATE);
-            Log.d("현재받은요금",AMBlestruct.AMReceiveFare.M_START_FARE );
-            Log.d("현재추가요금", AMBlestruct.AMReceiveFare.M_ETC_FARE);
+            Log.d("19=>받은버튼값",AMBlestruct.AMReceiveFare.M_STATE);
+            Log.d("19=>현재받은요금",AMBlestruct.AMReceiveFare.M_START_FARE );
+            Log.d("19=>기타/추가", AMBlestruct.AMReceiveFare.M_ETC_FARE);
+            Log.d("19=>심야할증", AMBlestruct.AMReceiveFare.M_NIGHT_FARE);
+            Log.d("19=>시외할증", AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
+            Log.d("19=>복합할증", AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
+            Log.d("19=>할증율", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
+
 //                AMBlestruct.AMReceiveFare.M_START_FARE = outpkt.GetString(outdata, 6);  //승차요금
 //                AMBlestruct.AMReceiveFare.M_CALL_FARE = outpkt.GetString(outdata, 4);   //호출요금
 //                AMBlestruct.AMReceiveFare.M_ETC_FARE = outpkt.GetString(outdata, 6);    //기타요금

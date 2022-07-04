@@ -37,6 +37,7 @@ public class AMBlestruct {
     public static final String B_CALL = "33";    //호출
     public static final String B_RECEIPT = "34";    //영수
     public static final String B_CLOSE = "50";      //후무
+    public static final String B_RESERVE = "51";    //예약
     public static final String B_CANCEL_PAY = "51"; //결제취소
     public static final String B_MENU = "" ;
     public static  String B_ADDFARE= "" ;

@@ -43,6 +43,7 @@ import android.widget.Toast;
 
 import com.konai.appmeter.driver_am.adapter.MenuAdapter;
 import com.konai.appmeter.driver_am.R;
+import com.konai.appmeter.driver_am.dialog.BasicDialog;
 import com.konai.appmeter.driver_am.handler.BackPressedKeyHandler;
 import com.konai.appmeter.driver_am.service.AwindowService;
 import com.konai.appmeter.driver_am.setting.AMBlestruct;
@@ -69,14 +70,7 @@ import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
-    private String updateVersion, mdn, carNum, mirrorappUpdate;
-    private String appVersion;
-    private String resultData = "";
-    String File_Name = "app-debug.apk";   //확장자를 포함한 파일명
-    String fileURL = "http://175.125.20.72:8080/update/app-debug.apk"; // URL: 웹서버 쪽 파일이 있는 경로
-
     private BackPressedKeyHandler backKeyHandler = new BackPressedKeyHandler(this, windowService);
-
     private PermissionSupoort mPermission;
     private AMBluetoothManager amBluetoothManager = null;
     private BluetoothAdapter mBluetoothAdapter;
@@ -95,29 +89,30 @@ public class MainActivity extends AppCompatActivity {
     private MyTouchListener mTouchListener;
     private View viewframe1, viewframe2, viewframe3, viewframe4, viewframe5;
     private FrameLayout frame1, frame2, frame3, frame4, frame5;
-    private LinearLayout main_layout, menu_layout, menuNumberPadLayout, menu_main_layout, main_all_layout, radio_button_layout, main_btn_layout, number_pad_layout, add_fare_frame_layout, number_pad_frame_layout, menu_list_layout;
+    private LinearLayout main_layout, menu_layout, menuNumberPadLayout, menu_main_layout, main_all_layout, menu_info_layout, radio_button_layout, main_btn_layout, number_pad_layout, add_fare_frame_layout, number_pad_frame_layout, menu_list_layout;
     /* 추가금액 입력버튼 */
     int index = 0;
-    ArrayList<String> addFareList = new ArrayList<>();
-    private String addFareVal = "";
+    ArrayList<String> addFareList; //추가금액 리스트
+    private String addFareVal = ""; //추가금액 val
+    ArrayList<String> attendanceList; //출근입력 리스트
+    private String attendanceVal = ""; //출근입력 val
     private ButtonFitText btn_0, btn_1, btn_2, btn_3, btn_4, btn_5, btn_6, btn_7, btn_8, btn_9, btn_clear, btn_close, btn_ok;
     /* 메뉴 입력버튼 */
     ArrayList<String> menuInputList = new ArrayList<>();
     private String menuInputVal = "";
     private ButtonFitText m_btn_0, m_btn_1, m_btn_2, m_btn_3, m_btn_4, m_btn_5, m_btn_6, m_btn_7, m_btn_8, m_btn_9, m_btn_clear, m_btn_close, m_btn_ok;
-    private FontFitTextView menu_input_text, add_fare_text;
-    private EditText menu_input_edit_text;
-    private String menuInput;
+    private FontFitTextView menu_input_text, add_fare_text, add_fare_title;
+    private EditText menu_input_edit_text, add_fare_edit_text;
     private MenuAdapter menuAdapter;
     private RecyclerView menuRecyclerView;
     private TextView menu_text;
     private ArrayList<String> itemList = new ArrayList<>();
     ArrayList<String> menuList;
-    private ButtonFitText btn_menu, btn_complex, btn_login, btn_arrive, btn_add_pay, close_menu_btn, back_menu_btn;
+    private ButtonFitText btn_menu, btn_receipt, btn_reserve, btn_attendance, btn_arrive, btn_add_pay, close_menu_btn, back_menu_btn;
     private ButtonFitText btn_empty, btn_drive, btn_call, btn_pay;
     private ImageView iv_ble;
     private int totalFareValue;
-    private FontFitTextView tv_night_status, tv_complex, tv_suburb_rate, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status, menu_title;
+    private FontFitTextView fareRate, tv_night_status, tv_complex, tv_suburb_rate, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status, menu_title;
     private Boolean menuClicked, isDrivedClicked = false;
     private Intent enableIntent;
 
@@ -129,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
             setBluetoothIconChanged(bleStatus);
 //            windowService.update_BtnMeterstate("00");
         }
-
 
 
         @Override
@@ -167,6 +161,22 @@ public class MainActivity extends AppCompatActivity {
                 tv_add_pay.setVisibility(View.GONE);
             }
 
+
+            //시외할증
+            if (suburbFare == 0) {
+                tv_suburb_rate.setVisibility(View.GONE);
+            }else {
+                tv_suburb_rate.setVisibility(View.VISIBLE);
+            }
+
+            //심야할증
+            if (nightFare == 0) {
+                tv_night_status.setVisibility(View.GONE);
+            }else {
+                tv_night_status.setVisibility(View.VISIBLE);
+            }
+
+
             //복합할증
             if (complexFare == 0) {
                 tv_complex.setVisibility(View.GONE);
@@ -174,24 +184,16 @@ public class MainActivity extends AppCompatActivity {
                 tv_complex.setVisibility(View.VISIBLE);
             }
 
-
-
-            //시외할증
-            if (suburbFareRate == 0) {
-                tv_suburb_rate.setVisibility(View.GONE);
+            //할증율
+            if (suburbFareRate > 0) {
+                fareRate.setVisibility(View.VISIBLE);
+                fareRate.setText(suburbFareRate+"%");
             }else {
-                tv_suburb_rate.setText("시외 "+suburbFareRate+"%   ");
-                tv_suburb_rate.setVisibility(View.VISIBLE);
+                fareRate.setVisibility(View.GONE);
             }
 
-            //심야할증
-//            nightFare = 1;
-            if (nightFare == 0) {
-                tv_night_status.setVisibility(View.GONE);
-            }else {
-                tv_night_status.setText("심야 20%   ");
-                tv_night_status.setVisibility(View.VISIBLE);
-            }
+
+
 
             //status: 추가요금 총요금에 더하기
             /**
@@ -202,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
             }
             **/
 
-            windowService.update_BtnMeterstate("00");
+//            windowService.update_BtnMeterstate("00");
 
             long value = Long.parseLong(mFare +"");
             DecimalFormat format = new DecimalFormat("###,###");
@@ -243,8 +245,8 @@ public class MainActivity extends AppCompatActivity {
         public void serviceMeterMenuState(String menuMsg, int menuType) {
             
             //빈차등에서 메뉴 -> 빈차 클릭시 = 초기화시킴
-            if (menuType == 0) {
-//                close_menu_btn.performClick();
+            if (menuType == 0) {   //0-닫기/1-메뉴/2-정보출력/3-정보출력+숫자
+                Log.d("menuType", menuType+"");
                 menuNumberPadLayout.setVisibility(View.GONE);
                 menuInputList.removeAll(menuInputList);
                 menu_layout.setVisibility(View.GONE);
@@ -256,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
 
             //받아온 빈차등 메뉴 리스트
             menuList = new ArrayList<>(Arrays.asList(menuMsg.split("\n")));
+            Log.d("menuType_menuList", menuList.toString());
 
             menuAdapter = new MenuAdapter(MainActivity.this, menuList);
 
@@ -278,6 +281,12 @@ public class MainActivity extends AppCompatActivity {
 
                 menuNumberPadLayout.setVisibility(View.GONE);
                 menuInputList.removeAll(menuInputList);
+
+//                if (menuType == 3) {
+//                    menu_info_layout.setVisibility(View.VISIBLE);
+//                }else {
+//                    menu_info_layout.setVisibility(View.GONE);
+//                }
 
                 //메뉴어뎁터 클릭리스너
                 menuAdapter.setmListener(new MenuAdapter.onItemClickListener() {
@@ -311,9 +320,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void setBluetoothIconChanged(boolean ble) {
         if (ble == true) {
-            Log.d("현재아이콘", "ble connected");
+//            Log.d("현재아이콘", "ble connected");
             iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
             Toast.makeText(MainActivity.this, "빈차등 연결 성공", Toast.LENGTH_SHORT).show();
+            windowService.update_BtnMeterstate(AMBlestruct.mSState);
+//
 
         } else {
             iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
@@ -356,7 +367,6 @@ public class MainActivity extends AppCompatActivity {
 
         mContext = this;
 
-
         //블루투스 관리자객체 소환
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -378,11 +388,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
     @Override
     public void onBackPressed() {
-//        backKeyHandler.onBackPressed();
+        backKeyHandler.onBackPressed();
     }
 
 
@@ -624,6 +632,7 @@ public class MainActivity extends AppCompatActivity {
         iv_ble = (ImageView) viewframe1.findViewById(R.id.nbtn_connectble);
         btn_main_status = (FontFitTextView) viewframe1.findViewById(R.id.nbtn_main_status);
         tv_night_status = (FontFitTextView) viewframe1.findViewById(R.id.ntv_status);
+        fareRate = (FontFitTextView) viewframe1.findViewById(R.id.fareRate);
         tv_complex = (FontFitTextView) viewframe1.findViewById(R.id.ntv_complex);
         tv_add_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_addpayment);
         tv_rescall_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_rescallpay);
@@ -639,27 +648,30 @@ public class MainActivity extends AppCompatActivity {
         menu_main_layout = (LinearLayout) findViewById(R.id.menu_main_layout);
 //        radio_button_layout = (LinearLayout) findViewById(R.id.radio_button_layout);
         main_all_layout = (LinearLayout) findViewById(R.id.main_all_layout);
+        menu_info_layout = (LinearLayout) findViewById(R.id.main_all_layout);
 
 
         /*메인버튼 frame2*/
         btn_empty = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_emptycar);
         btn_drive = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_drivestart);
-        btn_call = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_reserve);
+        btn_call = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_call);
         btn_pay = (ButtonFitText) viewframe2.findViewById(R.id.nbtn_driveend);
         main_btn_layout = (LinearLayout) viewframe2.findViewById(R.id.main_btn_layout);
 
         /*메인버튼 frame3*/
         btn_menu = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_menu);
-        btn_complex = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_complex);
-        btn_login = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_login);
-        btn_arrive = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_arrived);
+        btn_receipt = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_receipt);
+        btn_attendance = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_attendance);
+        btn_reserve = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_reserve);
         btn_add_pay = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_addpayment);
 
         /*추가요금 frame4 & frame5*/
         number_pad_layout = (LinearLayout) findViewById(R.id.number_pad_layout);
         number_pad_frame_layout = (LinearLayout) findViewById(R.id.number_pad_frame_layout);
         add_fare_frame_layout = viewframe4.findViewById(R.id.add_fare_frame_layout);
-        add_fare_text = (FontFitTextView) viewframe4.findViewById(R.id.add_fare_text);
+//        add_fare_text = (FontFitTextView) viewframe4.findViewById(R.id.add_fare_text);
+        add_fare_edit_text = (EditText) viewframe4.findViewById(R.id.add_fare_edit_text);
+        add_fare_title = (FontFitTextView) viewframe4.findViewById(R.id.add_fare_title);
         btn_0 = (ButtonFitText) viewframe5.findViewById(R.id.btn_0);
         btn_1 = (ButtonFitText) viewframe5.findViewById(R.id.btn_1);
         btn_2 = (ButtonFitText) viewframe5.findViewById(R.id.btn_2);
@@ -688,6 +700,24 @@ public class MainActivity extends AppCompatActivity {
         btn_close.setOnClickListener(numberPadClickListener);
         btn_ok.setOnClickListener(numberPadClickListener);
 
+        mTouchListener = new MyTouchListener();
+
+        btn_0.setOnTouchListener(mTouchListener);
+        btn_1.setOnTouchListener(mTouchListener);
+        btn_2.setOnTouchListener(mTouchListener);
+        btn_3.setOnTouchListener(mTouchListener);
+        btn_4.setOnTouchListener(mTouchListener);
+        btn_5.setOnTouchListener(mTouchListener);
+        btn_6.setOnTouchListener(mTouchListener);
+        btn_7.setOnTouchListener(mTouchListener);
+        btn_8.setOnTouchListener(mTouchListener);
+        btn_9.setOnTouchListener(mTouchListener);
+        btn_clear.setOnTouchListener(mTouchListener);
+        btn_close.setOnTouchListener(mTouchListener);
+        btn_ok.setOnTouchListener(mTouchListener);
+
+
+
         iv_ble.setOnClickListener(mainBtnClickListener);
         btn_main_status.setOnClickListener(mainBtnClickListener);
         tv_night_status.setOnClickListener(mainBtnClickListener);
@@ -705,16 +735,16 @@ public class MainActivity extends AppCompatActivity {
         btn_drive.setOnClickListener(mainBtnClickListener);
         btn_call.setOnClickListener(mainBtnClickListener);
         btn_pay.setOnClickListener(mainBtnClickListener);
+        btn_receipt.setOnClickListener(mainBtnClickListener);
 
         btn_menu.setOnTouchListener(mTouchListener);
-        btn_complex.setOnTouchListener(mTouchListener);
-        btn_login.setOnTouchListener(mTouchListener);
-        btn_arrive.setOnTouchListener(mTouchListener);
+        btn_receipt.setOnTouchListener(mTouchListener);
+        btn_reserve.setOnTouchListener(mTouchListener);
+        btn_attendance.setOnTouchListener(mTouchListener);
         btn_add_pay.setOnTouchListener(mTouchListener);
         btn_menu.setOnClickListener(mainBtnClickListener);
-        btn_complex.setOnClickListener(mainBtnClickListener);
-        btn_login.setOnClickListener(mainBtnClickListener);
-        btn_arrive.setOnClickListener(mainBtnClickListener);
+        btn_reserve.setOnClickListener(mainBtnClickListener);
+        btn_attendance.setOnClickListener(mainBtnClickListener);
         btn_add_pay.setOnClickListener(mainBtnClickListener);
 
 
@@ -758,6 +788,22 @@ public class MainActivity extends AppCompatActivity {
         m_btn_close.setOnClickListener(menuBtnClickListener);
         m_btn_ok.setOnClickListener(menuBtnClickListener);
 
+        close_menu_btn.setOnTouchListener(mTouchListener);
+        back_menu_btn.setOnTouchListener(mTouchListener);
+        m_btn_0.setOnTouchListener(mTouchListener);
+        m_btn_1.setOnTouchListener(mTouchListener);
+        m_btn_2.setOnTouchListener(mTouchListener);
+        m_btn_3.setOnTouchListener(mTouchListener);
+        m_btn_4.setOnTouchListener(mTouchListener);
+        m_btn_5.setOnTouchListener(mTouchListener);
+        m_btn_6.setOnTouchListener(mTouchListener);
+        m_btn_7.setOnTouchListener(mTouchListener);
+        m_btn_8.setOnTouchListener(mTouchListener);
+        m_btn_9.setOnTouchListener(mTouchListener);
+        m_btn_clear.setOnTouchListener(mTouchListener);
+        m_btn_close.setOnTouchListener(mTouchListener);
+        m_btn_ok.setOnTouchListener(mTouchListener);
+
 
 
     }//viewFrameVariablesConfiguration
@@ -781,6 +827,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i=0; i<1; i++) {
                 index = i;
                 switch (v.getId()) {
+
                     case R.id.btn_0:
                         if (addFareList.size() == 0){
                             //do nothing
@@ -815,9 +862,22 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.btn_9:
                         addFareList.add("9");
                         break;
-                    case R.id.btn_clear:
-                        if (addFareList.size() != 0) {
-                            addFareList.removeAll(addFareList);
+                    case R.id.btn_clear:  //정정
+//                        if (addFareList.size() != 0) {
+//                            addFareList.removeAll(addFareList);
+//                        }
+                        try {
+                            int lastIndex = addFareList.size() - 1;
+
+                            if (lastIndex <= 0) {
+                                addFareList.removeAll(addFareList);
+                                add_fare_edit_text.setText("");
+                            }else {
+                                addFareList.remove(lastIndex);
+                            }
+
+                        }catch (Exception e) {
+
                         }
                         break;
                     case R.id.btn_close:
@@ -830,15 +890,39 @@ public class MainActivity extends AppCompatActivity {
                         add_fare_frame_layout.setVisibility(View.GONE);
                         break;
                     case R.id.btn_ok: // 확인
-                        if (addFareVal.length() <= 6) {
+                        if (add_fare_edit_text.getText().toString().length() <= 6) {
                             number_pad_layout.setVisibility(View.VISIBLE);
                             main_layout.setVisibility(View.VISIBLE);
                             menu_layout.setVisibility(View.GONE);
                             number_pad_frame_layout.setVisibility(View.GONE);
                             add_fare_frame_layout.setVisibility(View.GONE);
-                            add_fare_text.setVisibility(View.VISIBLE);
+                            add_fare_edit_text.setVisibility(View.VISIBLE);
 //                            tv_add_pay.setText("추가 "+addFareVal);
-                            windowService.add_fareState("20", add_fare_text.getText().toString());
+                            if (add_fare_title.getText().toString().equals("추가금액 입력")) {
+                                if (add_fare_edit_text.getText().toString().length() < 2) {
+                                    Toast.makeText(mContext, "잘못입력 하셨습니다", Toast.LENGTH_SHORT).show();
+                                    addFareList.removeAll(addFareList);
+                                }else if (add_fare_edit_text.getText().toString().length() == 3){
+                                    windowService.add_fareState("20", "000"+add_fare_edit_text.getText().toString());
+                                }else if (add_fare_edit_text.getText().toString().length() == 4) {
+                                    windowService.add_fareState("20", "00"+add_fare_edit_text.getText().toString());
+                                }else if (add_fare_edit_text.getText().toString().length() == 5) {
+                                    windowService.add_fareState("20", "0"+add_fare_edit_text.getText().toString());
+                                }
+                            }else if (add_fare_title.getText().toString().equals("운전자 아이디입력")) {
+                                if (add_fare_edit_text.getText().toString().length() < 2) {
+                                    Toast.makeText(mContext, "잘못입력 하셨습니다", Toast.LENGTH_SHORT).show();
+                                    addFareList.removeAll(addFareList);
+                                } else if (add_fare_edit_text.getText().toString().length() == 3){
+                                    windowService.check_attendance("20", "000"+add_fare_edit_text.getText().toString());
+                                }else if (add_fare_edit_text.getText().toString().length() == 4) {
+                                    windowService.check_attendance("20", "00"+add_fare_edit_text.getText().toString());
+                                }else if (add_fare_edit_text.getText().toString().length() == 5) {
+                                    windowService.check_attendance("20", "0"+add_fare_edit_text.getText().toString());
+                                }
+                            }
+//                            addFareList.removeAll(addFareList);
+//                            add_fare_edit_text.setText("0");
                         }else {
                             Toast.makeText(mContext, "입력초과", Toast.LENGTH_SHORT).show();
                         }
@@ -852,10 +936,10 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 if (addFareList.size() == 0) {
-                    add_fare_text.setText("0원");
+                    add_fare_edit_text.setText("0");
                 }else {
                     addFareVal = TextUtils.join("",addFareList);
-                    add_fare_text.setText(addFareVal+"원");
+                    add_fare_edit_text.setText(addFareVal);
 
                 }
             }catch (Exception e) {
@@ -924,11 +1008,19 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.m_btn_9:
                         menuInputList.add("9");
                         break;
-                    case R.id.m_btn_clear:
-                        if (menuInputList.size() != 0) {
-                            menuInputList.removeAll(menuInputList);
-//                            menu_input_text.setText("");
-                            menu_input_edit_text.setText("");
+                    case R.id.m_btn_clear:  //정정
+                        try {
+                            int lastIndex = menuInputList.size() - 1;
+
+                            if (lastIndex <= 0) {
+                                menuInputList.removeAll(menuInputList);
+                                menu_input_edit_text.setText("");
+                            }else {
+                                menuInputList.remove(lastIndex);
+                            }
+
+                        }catch (Exception e) {
+
                         }
                         break;
                     case R.id.m_btn_close:
@@ -1020,7 +1112,7 @@ public class MainActivity extends AppCompatActivity {
                     windowService.update_BtnMeterstate(AMBlestruct.B_DRIVE);
                     break;
 
-                case R.id.nbtn_reserve:    //호출버튼
+                case R.id.nbtn_call:    //호출버튼
                     main_all_layout.setVisibility(View.VISIBLE);
                     main_layout.setVisibility(View.VISIBLE);
                     menu_layout.setVisibility(View.GONE);
@@ -1054,18 +1146,28 @@ public class MainActivity extends AppCompatActivity {
                         windowService.menu_meterState(AMBlestruct.APP_MENU_REQUEST_CODE, AMBlestruct.MenuType.OPEN,"");
                     }
                     break;
-                case R.id.nbtn_complex:  //복합 btn
-                    windowService.update_BtnMeterstate(AMBlestruct.B_COMPLEX);
+                case R.id.nbtn_receipt:  //영수 btn
+                    windowService.update_BtnMeterstate(AMBlestruct.B_RECEIPT);
                     break;
-                case R.id.nbtn_login:  //로그인 btn
+                case R.id.nbtn_attendance:  //출근 btn
+                    addFareList = new ArrayList<>();
+                    add_fare_title.setText("운전자 아이디입력");
+                    add_fare_edit_text.setText("");
+                    main_layout.setVisibility(View.GONE);
+                    menu_layout.setVisibility(View.GONE);
+                    number_pad_frame_layout.setVisibility(View.VISIBLE);
+                    add_fare_frame_layout.setVisibility(View.VISIBLE);
                     break;
-                case R.id.nbtn_arrived:  //도착 btn
+                case R.id.nbtn_reserve:  //예약 btn
+                    //me: 버튼 -> 빈차등
+                    windowService.update_BtnMeterstate(AMBlestruct.B_RESERVE);
                     break;
                 case R.id.nbtn_addpayment:  //추가금액 btn
                     //show frame 4
                     addFareList = new ArrayList<>();
                     addFareVal = "";
-                    add_fare_text.setText("0원");
+                    add_fare_title.setText("추가금액 입력");
+                    add_fare_edit_text.setText("0");
                     main_layout.setVisibility(View.GONE);
                     menu_layout.setVisibility(View.GONE);
                     number_pad_frame_layout.setVisibility(View.VISIBLE);

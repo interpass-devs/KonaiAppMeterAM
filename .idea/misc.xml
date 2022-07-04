@@ -83,10 +83,18 @@
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/layout/recycler_select_driver.xml" value="0.290625" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/menu/main_drawer_menu.xml" value="0.1890625" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAM/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.24" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/drawable/green_selected_btn.xml" value="0.2005" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/drawable/grey_gradi_btn.xml" value="0.2005" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/drawable/grey_gradi_btn_rec.xml" value="0.3" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/drawable/grey_selected_btn.xml" value="0.2005" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/drawable/orange_selected_btn.xml" value="0.2005" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/drawable/yellow_selected_btn.xml" value="0.2005" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/activity_main.xml" value="0.21" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/activity_update.xml" value="0.21875" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/dialog_basic.xml" value="0.22291666666666668" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/mainbuttonframe2.xml" value="0.32864583333333336" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/mainbuttonframe3.xml" value="0.20572916666666666" />
-        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/mainframe1.xml" value="0.35052083333333334" />
+        <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/mainframe1.xml" value="0.33" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/newmainframe1.xml" value="0.20520833333333333" />
         <entry key="..\:/Users/Interpass/AndroidStudioProjects/KonaiAppMeterAMfinal/app/src/main/res/layout/numberpadframe5.xml" value="0.246875" />
         <entry key="..\:/Users/Interpass/AppData/Local/Android/Sdk/platforms/android-31/data/res/layout/simple_list_item_1.xml" value="0.21666666666666667" />
