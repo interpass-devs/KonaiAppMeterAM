@@ -587,31 +587,54 @@ public class AwindowService extends Service {
 
                 Log.d("btnTypeee", AMBlestruct.AMReceiveFare.M_STATE);
 
-                if (AMBlestruct.AMReceiveFare.M_STATE.equals("1")) {  //지불
+                if (AMBlestruct.AMReceiveFare.M_STATE.equals("01")) {  //지불
 
                     Log.d("btnTypeee-1", callFare+"");
 
 //                    mfare = startFare + callFare + etcFare + nightFare + complexFare + suburbFare;  //더하지 말기 -> 빈차등 수신요금 그대로
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.PAY, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
+                    mCallback.serviceMeterState(01, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
 
-                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("2")) { //빈차
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("05")) { //빈차
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.EMPTY, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
+                    Log.d("btnCehck_빈차",AMBlestruct.AMReceiveFare.M_STATE);
 
-                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("3")) { //주행
+                    mCallback.serviceMeterState(05, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
 
-                    mCallback.serviceMeterState(AMBlestruct.MeterState.DRIVE, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("20")) { //주행
 
-                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("4")) { //할증
+                    Log.d("btnCehck_주행",AMBlestruct.AMReceiveFare.M_STATE);
 
-                    Log.d("btntypeee", "호출");
+                    mCallback.serviceMeterState(20, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
+
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("30")) { //할증
+
+                    Log.d("btnCehck_할증",AMBlestruct.AMReceiveFare.M_STATE);
 
                     mCallback.serviceMeterState(4, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
 
-                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("5")) { //수기결제
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("02")) { //수기결제
 
-                    mCallback.serviceMeterState(5, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
+                    Log.d("btnCehck_수기",AMBlestruct.AMReceiveFare.M_STATE + ": "+callFare);
+
+                    mCallback.serviceMeterState(02, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
+
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("50")) { //휴무
+
+                    Log.d("btnCehck_휴무",AMBlestruct.AMReceiveFare.M_STATE);
+
+                    mCallback.serviceMeterState(6, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
+
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("51")) { //예약
+
+                    Log.d("btnCehck_예약",AMBlestruct.AMReceiveFare.M_STATE);
+
+                    mCallback.serviceMeterState(7, mfare, startFare, callFare, etcFare, nightFare, complexFare, suburbFare, suburbFareRate);
+
+                }else if (AMBlestruct.AMReceiveFare.M_STATE.equals("99")) {  //미정된 코드
+
+                    Log.d("btnCehck_미정코드",AMBlestruct.AMReceiveFare.M_STATE);
+
                 }
 
 

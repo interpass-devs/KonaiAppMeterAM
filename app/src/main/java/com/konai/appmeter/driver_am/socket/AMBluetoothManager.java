@@ -676,22 +676,22 @@ public class AMBluetoothManager {
             case AMBlestruct.METER_REQUEST_CODE: // "19" 택시요금수신, 미터기모드 응답
             AMBlestruct.AMReceiveFare.M_RECEIVE_TIME = rcvDate;                                     // 날짜시간
             AMBlestruct.AMReceiveFare.M_CARNUM = getString(bytePacket, 17, 12);         // 차량번호
-            AMBlestruct.AMReceiveFare.M_STATE = getString(bytePacket, 29, 1);           // 버튼값   //ME: 여기서 받은 버튼값을 MainActivity 에서 확인하여 화면전환..
-            AMBlestruct.AMReceiveFare.M_START_FARE = getString(bytePacket, 30, 6);      // 승차요금
-            AMBlestruct.AMReceiveFare.M_CALL_FARE = getString(bytePacket, 36, 4);       // 호출요금
-            AMBlestruct.AMReceiveFare.M_ETC_FARE = getString(bytePacket, 40, 6);        // 기타요금 /추가요금
-            AMBlestruct.AMReceiveFare.M_NIGHT_FARE = getString(bytePacket, 46, 1);      // 심야할증여부
-            AMBlestruct.AMReceiveFare.M_COMPLEX_FARE = getString(bytePacket, 47, 1);    // 복합할증여부
-            AMBlestruct.AMReceiveFare.M_SUBURB_FARE = getString(bytePacket, 48, 1);     // 시계할증여부
-            AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = getString(bytePacket, 49, 3); // 할증율
+            AMBlestruct.AMReceiveFare.M_STATE = getString(bytePacket, 29, 2);           // 버튼값   //ME: 여기서 받은 버튼값을 MainActivity 에서 확인하여 화면전환..
+            AMBlestruct.AMReceiveFare.M_START_FARE = getString(bytePacket, 31, 6);      // 승차요금
+            AMBlestruct.AMReceiveFare.M_CALL_FARE = getString(bytePacket, 37, 4);       // 호출요금
+            AMBlestruct.AMReceiveFare.M_ETC_FARE = getString(bytePacket, 41, 6);        // 기타요금 /추가요금
+            AMBlestruct.AMReceiveFare.M_NIGHT_FARE = getString(bytePacket, 47, 1);      // 심야할증여부
+            AMBlestruct.AMReceiveFare.M_COMPLEX_FARE = getString(bytePacket, 48, 1);    // 복합할증여부
+            AMBlestruct.AMReceiveFare.M_SUBURB_FARE = getString(bytePacket, 49, 1);     // 시계할증여부
+            AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = getString(bytePacket, 50, 3); // 할증율
 
             Log.d("19=>받은버튼값",AMBlestruct.AMReceiveFare.M_STATE);
             Log.d("19=>현재받은요금",AMBlestruct.AMReceiveFare.M_START_FARE );
             Log.d("19=>기타/추가", AMBlestruct.AMReceiveFare.M_ETC_FARE);
-            Log.d("19=>심야할증", AMBlestruct.AMReceiveFare.M_NIGHT_FARE);
-            Log.d("19=>시외할증", AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
-            Log.d("19=>복합할증", AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
-            Log.d("19=>할증율", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
+//            Log.d("19=>심야할증", AMBlestruct.AMReceiveFare.M_NIGHT_FARE);
+//            Log.d("19=>시외할증", AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
+//            Log.d("19=>복합할증", AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
+//            Log.d("19=>할증율", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
 
 
 //                AMBlestruct.AMReceiveFare.M_START_FARE = outpkt.GetString(outdata, 6);  //승차요금

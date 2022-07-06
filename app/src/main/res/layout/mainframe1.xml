@@ -139,7 +139,7 @@
             android:orientation="horizontal"
             android:paddingTop="10dp">
             <LinearLayout
-                android:layout_weight="1"
+                android:layout_weight="0.6"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
@@ -159,54 +159,25 @@
                     android:text="빈차"
                     android:textStyle="bold"
                     android:textColor="@color/white"/>
-                <com.konai.appmeter.driver_am.util.ButtonFitText
-                    android:visibility="invisible"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:layout_gravity="center"
-                    android:layout_marginLeft="10dp"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:background="@drawable/grey_gradi_btn"/>
             </LinearLayout>
 
             <LinearLayout
                 android:layout_weight="1"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <com.konai.appmeter.driver_am.util.FontFitTextView
-                    android:layout_weight="0.2"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:gravity="center_vertical|right"
-                    android:textColor="@color/white"/>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-                    <com.konai.appmeter.driver_am.util.FontFitTextView
-                        android:visibility="visible"
-                        android:layout_weight="1"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:gravity="center_vertical|right"
-                        android:text=""
-                        android:textStyle="bold"
-                        android:textColor="@color/white"/>
-
-                    <com.konai.appmeter.driver_am.util.FontFitTextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:gravity="center_vertical|right"
-                        android:text=""
-                        android:textColor="@color/white"
-                        android:textStyle="bold"
-                        android:visibility="visible" />
-                </LinearLayout>
-
+                    android:visibility="gone"
+                    android:id="@+id/nbtn_main_sub_status"
+                    android:layout_width="155dp"
+                    android:layout_height="45dp"
+                    android:gravity="center_vertical"
+                    android:text="자동결제"
+                    android:textStyle="bold"
+                    android:textColor="@color/orange"
+                    android:layout_marginLeft="10dp"/>
             </LinearLayout>
 
 
