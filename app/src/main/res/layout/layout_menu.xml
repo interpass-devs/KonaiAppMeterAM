@@ -2,8 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/main_background">
+    android:layout_height="wrap_content">
 
 
     <TextView
@@ -18,9 +17,44 @@
         android:paddingBottom="8dip"
         android:textColor="#ffffffff"
         android:textSize="25dp"
-        android:paddingLeft="20dp"/>
+        android:paddingLeft="20dp"
+        android:background="@color/main_background"/>
 
-
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/print_btn_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="20dp">
+        <TextView
+            android:id="@+id/print_btn_1"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="dd"
+            android:textColor="@color/black"
+            android:textSize="25dp"
+            android:textStyle="bold"
+            android:background="@drawable/yellow_gradi_btn"
+            android:layout_marginRight="5dp"
+            android:padding="8dp"/>
+        <TextView
+            android:id="@+id/print_btn_2"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="dd"
+            android:textColor="@color/black"
+            android:textSize="25dp"
+            android:textStyle="bold"
+            android:background="@drawable/yellow_gradi_btn"
+            android:layout_marginLeft="5dp"
+            android:padding="8dp"/>
+    </LinearLayout>
 
 
 

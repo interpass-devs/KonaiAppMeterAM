@@ -82,6 +82,14 @@ public class MyTouchListener implements View.OnTouchListener {
                     v.setBackgroundResource(R.drawable.grey_gradi_btn_rec);
                 }
                 break;
+            case R.id.nbtn_dayoff://휴무 btn
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    v.setBackgroundResource(R.drawable.grey_selected_btn);
+                }
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    v.setBackgroundResource(R.drawable.grey_gradi_btn_rec);
+                }
+                break;
             case R.id.nbtn_addpayment:  //추가 btn
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     v.setBackgroundResource(R.drawable.grey_selected_btn);

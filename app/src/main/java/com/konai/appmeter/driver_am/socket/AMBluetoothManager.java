@@ -356,7 +356,6 @@ public class AMBluetoothManager {
     public void update_AMmeterstate(String sstate)
     {
         AMBlestruct.mSState = sstate;
-//        Log.d(log, "현재상태버튼값: "+sstate);
 
         makepacketsend(AMBlestruct.APP_REQUEST_CODE); //"15"
 
@@ -405,6 +404,8 @@ public class AMBluetoothManager {
         topkt.SetPoint(0);
 
         topkt.Setbyte(packetdata, (byte) 0x02);  //STX
+
+        Log.d("현재_requestCode", requestCode+",  "+AMBlestruct.mSState);
 
         switch (requestCode) {
 
@@ -651,11 +652,11 @@ public class AMBluetoothManager {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        Log.d("strPacket", strPacket);
+        Log.d("strPacket", strPacket);   //1920220705162428서울12가00032000000000000000000000020220705162424000000000000000000197001010000000000000000000000000000000000008B
         // end
 
         String rcvCode = getString(bytePacket, 1, 2);
-        Log.d("getCode", rcvCode);  //menu- 42
+        Log.d("현재_getCode", rcvCode);  //menu- 42
 
         // 아래 코드 확인 필요.
         if (outpkt.GetAMBleCRC(outdata, packetlen).equals(String.format("%c%c", outdata[packetlen -3], outdata[packetlen - 2])) == false)
@@ -691,6 +692,7 @@ public class AMBluetoothManager {
             Log.d("19=>시외할증", AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
             Log.d("19=>복합할증", AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
             Log.d("19=>할증율", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
+
 
 //                AMBlestruct.AMReceiveFare.M_START_FARE = outpkt.GetString(outdata, 6);  //승차요금
 //                AMBlestruct.AMReceiveFare.M_CALL_FARE = outpkt.GetString(outdata, 4);   //호출요금

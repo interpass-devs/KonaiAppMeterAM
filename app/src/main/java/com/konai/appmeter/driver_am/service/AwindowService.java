@@ -656,7 +656,6 @@ public class AwindowService extends Service {
     //me: 버튼값 업데이트 -> 빈차등으로 보내기
     public boolean update_BtnMeterstate(String sstate) {
         if (amBluetoothManager != null) {
-//            Log.d("현재상태버튼값", sstate);
             amBluetoothManager.update_AMmeterstate(sstate);
         }
         return true;

@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView menu_text;
     private ArrayList<String> itemList = new ArrayList<>();
     ArrayList<String> menuList;
-    private ButtonFitText btn_menu, btn_receipt, btn_reserve, btn_attendance, btn_arrive, btn_add_pay, close_menu_btn, back_menu_btn;
+    private ButtonFitText btn_menu, btn_receipt, btn_reserve, btn_attendance, btn_arrive, btn_dayoff, btn_add_pay, close_menu_btn, back_menu_btn;
     private ButtonFitText btn_empty, btn_drive, btn_call, btn_pay;
     private ImageView iv_ble;
     private int totalFareValue;
@@ -262,7 +262,7 @@ public class MainActivity extends AppCompatActivity {
 
             menuAdapter = new MenuAdapter(MainActivity.this, menuList);
 
-            menuAdapter.whichMenu(menuList.get(0));
+            menuAdapter.menuTitleTouch(menuList.get(0));
 
             menuRecyclerView.setAdapter(menuAdapter);
 
@@ -282,18 +282,13 @@ public class MainActivity extends AppCompatActivity {
                 menuNumberPadLayout.setVisibility(View.GONE);
                 menuInputList.removeAll(menuInputList);
 
-//                if (menuType == 3) {
-//                    menu_info_layout.setVisibility(View.VISIBLE);
-//                }else {
-//                    menu_info_layout.setVisibility(View.GONE);
-//                }
-
                 //메뉴어뎁터 클릭리스너
-                menuAdapter.setmListener(new MenuAdapter.onItemClickListener() {
+                menuAdapter.setmClickListener(new MenuAdapter.onItemClickListener() {
                     @Override
                     public void onItemClick(View v, int pos) {
                         //me: 앱 -> 빈차등
                         // 메뉴목록 선택시 빈차등수신요청..
+//                        Log.d("pos>>>",pos+"");
                         AMBlestruct.MenuType.MENU_CONTENT = pos + "";
                         windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
                     }
@@ -323,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
 //            Log.d("현재아이콘", "ble connected");
             iv_ble.setBackgroundResource(R.drawable.bluetooth_green);
             Toast.makeText(MainActivity.this, "빈차등 연결 성공", Toast.LENGTH_SHORT).show();
-            windowService.update_BtnMeterstate(AMBlestruct.mSState);
+//            windowService.update_BtnMeterstate(AMBlestruct.mSState);
 //
 
         } else {
@@ -664,6 +659,7 @@ public class MainActivity extends AppCompatActivity {
         btn_attendance = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_attendance);
         btn_reserve = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_reserve);
         btn_add_pay = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_addpayment);
+        btn_dayoff = (ButtonFitText) viewframe3.findViewById(R.id.nbtn_dayoff);
 
         /*추가요금 frame4 & frame5*/
         number_pad_layout = (LinearLayout) findViewById(R.id.number_pad_layout);
@@ -742,10 +738,12 @@ public class MainActivity extends AppCompatActivity {
         btn_reserve.setOnTouchListener(mTouchListener);
         btn_attendance.setOnTouchListener(mTouchListener);
         btn_add_pay.setOnTouchListener(mTouchListener);
+        btn_dayoff.setOnTouchListener(mTouchListener);
         btn_menu.setOnClickListener(mainBtnClickListener);
         btn_reserve.setOnClickListener(mainBtnClickListener);
         btn_attendance.setOnClickListener(mainBtnClickListener);
         btn_add_pay.setOnClickListener(mainBtnClickListener);
+        btn_dayoff.setOnClickListener(mainBtnClickListener);
 
 
         /* menu_main_layout 안의 */
@@ -1161,6 +1159,10 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.nbtn_reserve:  //예약 btn
                     //me: 버튼 -> 빈차등
                     windowService.update_BtnMeterstate(AMBlestruct.B_RESERVE);
+                    break;
+                case R.id.nbtn_dayoff:  //휴무 btn
+                    windowService.update_BtnMeterstate("50");
+//                    windowService.update_BtnMeterstate("69");
                     break;
                 case R.id.nbtn_addpayment:  //추가금액 btn
                     //show frame 4
