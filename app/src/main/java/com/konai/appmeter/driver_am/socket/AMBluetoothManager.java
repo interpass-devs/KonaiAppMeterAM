@@ -405,7 +405,7 @@ public class AMBluetoothManager {
 
         topkt.Setbyte(packetdata, (byte) 0x02);  //STX
 
-        Log.d("현재_requestCode", requestCode+",  "+AMBlestruct.mSState);
+//        Log.d("현재_추가요금", requestCode+",  "+AMBlestruct.B_ADDFARE);
 
         switch (requestCode) {
 
@@ -443,10 +443,11 @@ public class AMBluetoothManager {
                 topkt.SetString(packetdata, AMBlestruct.MenuType.MENU_CONTENT);  //입력내용
                 break;
 
-            case "20":
+            case "20":  //추가요금 보내기
                 topkt.SetString(packetdata,"20");
                 topkt.SetString(packetdata,getCurDateString());
                 topkt.SetString(packetdata,AMBlestruct.B_ADDFARE);
+                Log.d("현재_추가요금", requestCode+",  "+AMBlestruct.B_ADDFARE);
                 break;
 
             case "48":
@@ -459,10 +460,10 @@ public class AMBluetoothManager {
 
         topkt.SetString(packetdata, topkt.GetAMBleCRC(packetdata));
         topkt.Setbyte(packetdata, (byte) 0x03);
-        Log.d("send_char","ttt");
+//        Log.d("send_char","ttt");
         mData = new byte[topkt.point];
-        Log.d("mData", mData.toString());
-        Log.d("mData_packetdata", packetdata.toString());
+//        Log.d("mData", mData.toString());
+//        Log.d("mData_packetdata", packetdata.toString());
         System.arraycopy(packetdata, 0, mData, 0, topkt.point);
         write(mData);
 
@@ -488,7 +489,7 @@ public class AMBluetoothManager {
             mBluetoothGatt.writeCharacteristic(m_gattCharTrans);
         }
 
-        Log.d(log+"send_char", m_gattCharTrans.toString());
+//        Log.d(log+"send_char", m_gattCharTrans.toString());
 
         final StringBuilder stringBuilder = new StringBuilder(data.length);
         for (byte byteChar : data)
@@ -513,9 +514,9 @@ public class AMBluetoothManager {
 //            StringBuilder builder = new StringBuilder();
 //            builder.append(characteristic);
 
-            Log.d(log+"receive_outdata", characteristic.getValue()+"");
+//            Log.d(log+"receive_outdata", characteristic.getValue()+"");
 
-            Log.d(log+"menu_outdata", characteristic.getValue()+"");
+//            Log.d(log+"menu_outdata", characteristic.getValue()+"");
 
             byte[] outdata = characteristic.getValue();
 
@@ -549,7 +550,7 @@ public class AMBluetoothManager {
 
                             case 0x03:
                                 outputData[outDataIndex++] = byteChar;
-                                Log.d(log+"outputData", outDataIndex+"");  //88
+//                                Log.d(log+"outputData", outDataIndex+"");  //88
 
                                 //me: 바로 파싱..
                                 // parsingend_AMBle(outdata, outdata.length);
@@ -652,7 +653,7 @@ public class AMBluetoothManager {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        Log.d("strPacket", strPacket);   //1920220705162428서울12가00032000000000000000000000020220705162424000000000000000000197001010000000000000000000000000000000000008B
+//        Log.d("strPacket", strPacket);
         // end
 
         String rcvCode = getString(bytePacket, 1, 2);
@@ -688,37 +689,6 @@ public class AMBluetoothManager {
             Log.d("19=>받은버튼값",AMBlestruct.AMReceiveFare.M_STATE);
             Log.d("19=>현재받은요금",AMBlestruct.AMReceiveFare.M_START_FARE );
             Log.d("19=>기타/추가", AMBlestruct.AMReceiveFare.M_ETC_FARE);
-//            Log.d("19=>심야할증", AMBlestruct.AMReceiveFare.M_NIGHT_FARE);
-//            Log.d("19=>시외할증", AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
-//            Log.d("19=>복합할증", AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
-//            Log.d("19=>할증율", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
-
-
-//                AMBlestruct.AMReceiveFare.M_START_FARE = outpkt.GetString(outdata, 6);  //승차요금
-//                AMBlestruct.AMReceiveFare.M_CALL_FARE = outpkt.GetString(outdata, 4);   //호출요금
-//                AMBlestruct.AMReceiveFare.M_ETC_FARE = outpkt.GetString(outdata, 6);    //기타요금
-//                AMBlestruct.AMReceiveFare.M_NIGHT_FARE = outpkt.GetString(outdata, 1); //심야할증여부
-//                AMBlestruct.AMReceiveFare.M_COMPLEX_FARE = outpkt.GetString(outdata, 1); //복합할증여부
-//                AMBlestruct.AMReceiveFare.M_SUBURB_FARE = outpkt.GetString(outdata, 1); //시계할증여부
-//                AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = outpkt.GetString(outdata, 3); //할증율
-//
-//                //나중에 사용---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//                AMBlestruct.AMReceiveFare.M_START_TIME = outpkt.GetString(outdata, 14);  //승차시간
-//                AMBlestruct.AMReceiveFare.M_START_X = outpkt.GetString(outdata, 14);    //승차좌표-X
-//                AMBlestruct.AMReceiveFare.M_START_Y = outpkt.GetString(outdata, 14);    //승차좌표-Y
-//                AMBlestruct.AMReceiveFare.M_END_X = outpkt.GetString(outdata, 14);      //하차좌표-X
-//                AMBlestruct.AMReceiveFare.M_END_Y = outpkt.GetString(outdata, 14);      //하차좌표-Y
-//                AMBlestruct.AMReceiveFare.M_START_DISTANCE = outpkt.GetString(outdata, 14);  //승차거리
-//                AMBlestruct.AMReceiveFare.M_EMPTY_DISTANCE = outpkt.GetString(outdata, 14);  //빈차거리
-//
-//                Log.d("meter_getCode_", "--------------------------------------");
-//                Log.d("meter_getCode_버튼값", AMBlestruct.AMReceiveFare.M_STATE);
-//                Log.d("meter_getCode_승차", AMBlestruct.AMReceiveFare.M_START_FARE);
-//                Log.d("meter_getCode_호출", AMBlestruct.AMReceiveFare.M_CALL_FARE);
-//                Log.d("meter_getCode_심야할증", AMBlestruct.AMReceiveFare.M_NIGHT_FARE);
-//                Log.d("meter_getCode_복합할증", AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
-//                Log.d("meter_getCode_시외할증", AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
-//                Log.d("meter_getCode_할증율", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
 
             //버튼값 절달 --> windowService --> mainActivity(mCallback)
             windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE);
