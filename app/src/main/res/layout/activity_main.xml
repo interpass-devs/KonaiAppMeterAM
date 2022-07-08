@@ -164,15 +164,16 @@
         android:layout_marginTop="40dp"
         android:layout_marginBottom="20dp">
 
-<!--        <com.konai.appmeter.driver_am.util.FontFitTextView-->
-<!--            android:id="@+id/menu_input_text"-->
-<!--            android:layout_weight="1.5"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="0dp"-->
-<!--            android:gravity="center"-->
-<!--            android:textColor="@color/black"-->
-<!--            android:background="@drawable/white_round_background"-->
-<!--            android:layout_marginBottom="15dp"/>-->
+        <com.konai.appmeter.driver_am.util.FontFitTextView
+            android:visibility="gone"
+            android:id="@+id/menu_input_text"
+            android:layout_weight="1.5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:background="@drawable/white_round_background"
+            android:layout_marginBottom="15dp"/>
         <EditText
             android:id="@+id/menu_input_edit_text"
             android:layout_weight="1.5"
@@ -182,6 +183,7 @@
             android:maxLength="15"
             android:textSize="35sp"
             android:clickable="false"
+            android:editable="false"
             android:textStyle="bold"
             android:textColor="@color/black"
             android:background="@drawable/white_round_background"

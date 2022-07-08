@@ -29,6 +29,7 @@
                 android:gravity="center|center_vertical"
                 android:padding="20dp"
                 android:text="빈차"
+                android:textStyle="bold"
                 android:textColor="@color/white" />
             <com.konai.appmeter.driver_am.util.ButtonFitText
                 android:id="@+id/nbtn_drivestart"
@@ -39,6 +40,7 @@
                 android:background="@drawable/yellow_gradi_btn"
                 android:padding="20dp"
                 android:textColor="@color/black"
+                android:textStyle="bold"
                 android:text="주행"/>
         </LinearLayout>
         <LinearLayout
@@ -57,6 +59,7 @@
                 android:gravity="center|center_vertical"
                 android:padding="20dp"
                 android:textColor="@color/white"
+                android:textStyle="bold"
                 android:text="호출" />
             <com.konai.appmeter.driver_am.util.ButtonFitText
                 android:id="@+id/nbtn_driveend"
@@ -67,6 +70,7 @@
                 android:gravity="center|center_vertical"
                 android:padding="20dp"
                 android:textColor="@color/white"
+                android:textStyle="bold"
                 android:text="지불" />
         </LinearLayout>
     </LinearLayout>

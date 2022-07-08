@@ -84,6 +84,7 @@ public class AMBlestruct {
 
 
         public static String M_EXTRA_FARE_RATE;  //할증율
+        public static String M_DRIVER_ID;  //운전자아이디
 
         public static String M_START_TIME;  //승차시간
         public static String M_START_X;    //승차좌표-X

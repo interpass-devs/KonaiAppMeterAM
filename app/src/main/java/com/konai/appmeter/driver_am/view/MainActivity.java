@@ -34,6 +34,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -102,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> menuInputList = new ArrayList<>();
     private String menuInputVal = "";
     private ButtonFitText m_btn_0, m_btn_1, m_btn_2, m_btn_3, m_btn_4, m_btn_5, m_btn_6, m_btn_7, m_btn_8, m_btn_9, m_btn_clear, m_btn_close, m_btn_ok;
-    private FontFitTextView menu_input_text, add_fare_text, add_fare_title;
+    private FontFitTextView menu_input_text, add_fare_text, add_fare_title, add_fare_value_text;
     private EditText menu_input_edit_text, add_fare_edit_text;
     private MenuAdapter menuAdapter;
     private RecyclerView menuRecyclerView;
@@ -113,12 +114,21 @@ public class MainActivity extends AppCompatActivity {
     private ButtonFitText btn_empty, btn_drive, btn_call, btn_pay;
     private ImageView iv_ble;
     private int totalFareValue;
-    private FontFitTextView fareRate, tv_night_status, tv_complex, tv_suburb_rate, tv_add_pay, tv_rescall_pay, tv_total_pay, btn_main_status, btn_sub_status, menu_title;
-    private Boolean menuClicked, isDrivedClicked = false, isPayClicked = false;
+    private FontFitTextView fareRate, tv_night_status, tv_complex, tv_suburb_rate, emptybox, tv_add_pay, tv_rescall_pay, tv_total_pay, driver_id_text, btn_main_status, btn_sub_status, menu_title;
+    private Boolean menuClicked, isDrivedClicked = false, isPayClicked = false, isCloseBtnCliked = false;
     private Intent enableIntent;
 
 
     private AwindowService.mainCallBack mCallback = new AwindowService.mainCallBack() {
+        @Override
+        public void changedDriverId(String driverID) {
+            if (driverID != null) {
+                if (!driverID.equals("")) {
+                    driver_id_text.setText(driverID);
+                }
+            }
+        }
+
         @Override
         public void serviceBleStatus(boolean bleStatus) {
             //블루투스 상태값 변경
@@ -128,7 +138,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         @Override
-        public void serviceMeterState(int btnType
+        public void serviceMeterState( String driverId
+                                    , int btnType
                                     , int mFare
                                     , int startFare
                                     , int callFare
@@ -140,7 +151,10 @@ public class MainActivity extends AppCompatActivity {
 
             AMBlestruct.AMReceiveFare.M_CALL_FARE = callFare + "";
 
-            Log.d("buttonType", btnType+"");
+            if (!driverId.equals("")) {
+                Log.d("운전자아이디_main", driverId);
+                driver_id_text.setText(driverId);
+            }
 
             //호출요금
             if (!AMBlestruct.AMReceiveFare.M_CALL_FARE.equals("0")) {
@@ -169,23 +183,29 @@ public class MainActivity extends AppCompatActivity {
             //시외할증
             if (suburbFare == 0) {
                 tv_suburb_rate.setVisibility(View.GONE);
+                emptybox.setVisibility(View.VISIBLE);
             }else {
                 tv_suburb_rate.setVisibility(View.VISIBLE);
+                emptybox.setVisibility(View.GONE);
             }
 
             //심야할증
             if (nightFare == 0) {
                 tv_night_status.setVisibility(View.GONE);
+                emptybox.setVisibility(View.VISIBLE);
             }else {
                 tv_night_status.setVisibility(View.VISIBLE);
+                emptybox.setVisibility(View.GONE);
             }
 
 
             //복합할증
             if (complexFare == 0) {
                 tv_complex.setVisibility(View.GONE);
+                emptybox.setVisibility(View.VISIBLE);
             }else {
                 tv_complex.setVisibility(View.VISIBLE);
+                emptybox.setVisibility(View.GONE);
             }
 
             //할증율
@@ -197,18 +217,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
-
-            //status: 추가요금 총요금에 더하기
-            /**
-            int addfare = 0;
-            if (!addFareVal.equals("")) {
-                addfare = Integer.parseInt(addFareVal);
-                mFare += addfare;
-            }
-            **/
-
-//            windowService.update_BtnMeterstate("00");
-
             long value = Long.parseLong(mFare +"");
             DecimalFormat format = new DecimalFormat("###,###");
 
@@ -217,10 +225,14 @@ public class MainActivity extends AppCompatActivity {
 
 
             if (btnType == 01) {
+                isPayClicked = true;
+                btn_dayoff.setText("자동결제");
                 btn_main_status.setText("지불");
                 btn_main_status.setTextColor(getResources().getColor(R.color.orange));
 
             } else if (btnType == 05) {
+                isDrivedClicked = false;
+                isPayClicked = false;
                 Log.d("buttonType!!",btnType+"");
                 main_all_layout.setVisibility(View.VISIBLE);
                 main_layout.setVisibility(View.VISIBLE);
@@ -232,11 +244,10 @@ public class MainActivity extends AppCompatActivity {
                 menuInputList.removeAll(menuInputList);
                 tv_night_status.setVisibility(View.GONE);
                 tv_complex.setVisibility(View.GONE);
-                isDrivedClicked = false;
-                isPayClicked = false;
                 btn_dayoff.setText("휴무");
 
             } else if (btnType == 20) {
+                isDrivedClicked = true;
                 btn_main_status.setText("주행");
                 btn_main_status.setTextColor(getResources().getColor(R.color.yellow));
             } else if (btnType == AMBlestruct.MeterState.CALL) {  //호출대신 주행이 불려짐.. i don't know why.
@@ -297,12 +308,31 @@ public class MainActivity extends AppCompatActivity {
                 //메뉴어뎁터 클릭리스너
                 menuAdapter.setmClickListener(new MenuAdapter.onItemClickListener() {
                     @Override
-                    public void onItemClick(View v, int pos) {
+                    public void onItemClick(View v, int pos, String numType) {
                         //me: 앱 -> 빈차등
                         // 메뉴목록 선택시 빈차등수신요청..
-//                        Log.d("pos>>>",pos+"");
+                        Log.d("pos>>>",pos+":  인쇄: "+numType);
+
                         AMBlestruct.MenuType.MENU_CONTENT = pos + "";
                         windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
+
+
+//                        switch (numType) {
+//                            case "0":  //기본값 보내기
+//                                AMBlestruct.MenuType.MENU_CONTENT = pos + "";
+//                                windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
+//                                break;
+//                            case "1":  //기본인쇄
+//                                AMBlestruct.MenuType.MENU_CONTENT = numType + "";
+//                                windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
+//                                break;
+//                            case "2":  //상세인쇄
+//                                AMBlestruct.MenuType.MENU_CONTENT = numType + "";
+//                                windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
+//                                break;
+//                        }
+
+
                     }
                 });
                 //메뉴어뎁터 터치리스너
@@ -332,6 +362,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "빈차등 연결 성공", Toast.LENGTH_SHORT).show();
 
         } else {
+            iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
+            Toast.makeText(MainActivity.this, "빈차등 연결 실패", Toast.LENGTH_SHORT).show();
             iv_ble.setBackgroundResource(R.drawable.bluetooth_blue);
         }
     }
@@ -396,8 +428,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        backKeyHandler.onBackPressed();
-        stopService(new Intent(MainActivity.this, AwindowService.class));
+        if (menu_main_layout.getVisibility() == View.VISIBLE) {
+            Toast.makeText(MainActivity.this, "취소하려면 닫기 버튼을 눌러주세요", Toast.LENGTH_SHORT).show();
+        }else if (number_pad_frame_layout.getVisibility() == View.VISIBLE){
+            Toast.makeText(MainActivity.this, "취소하려면 닫기 버튼을 눌러주세요", Toast.LENGTH_SHORT).show();
+        }else {
+            backKeyHandler.onBackPressed();
+            stopService(new Intent(MainActivity.this, AwindowService.class));
+        }
+
     }
 
 
@@ -637,11 +676,13 @@ public class MainActivity extends AppCompatActivity {
 
         /*메인화면버튼 frame1*/
         iv_ble = (ImageView) viewframe1.findViewById(R.id.nbtn_connectble);
+        driver_id_text = (FontFitTextView) viewframe1.findViewById(R.id.dirver_id_Text);
         btn_main_status = (FontFitTextView) viewframe1.findViewById(R.id.nbtn_main_status);
         btn_sub_status  = (FontFitTextView) viewframe1.findViewById(R.id.nbtn_main_sub_status);
         tv_night_status = (FontFitTextView) viewframe1.findViewById(R.id.ntv_status);
         fareRate = (FontFitTextView) viewframe1.findViewById(R.id.fareRate);
         tv_complex = (FontFitTextView) viewframe1.findViewById(R.id.ntv_complex);
+        emptybox = (FontFitTextView) viewframe1.findViewById(R.id.emptybox);
         tv_add_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_addpayment);
         tv_rescall_pay = (FontFitTextView) viewframe1.findViewById(R.id.ntv_rescallpay);
         tv_suburb_rate = (FontFitTextView) viewframe1.findViewById(R.id.ntv_suburb_rate);
@@ -679,7 +720,8 @@ public class MainActivity extends AppCompatActivity {
         number_pad_frame_layout = (LinearLayout) findViewById(R.id.number_pad_frame_layout);
         add_fare_frame_layout = viewframe4.findViewById(R.id.add_fare_frame_layout);
 //        add_fare_text = (FontFitTextView) viewframe4.findViewById(R.id.add_fare_text);
-        add_fare_edit_text = (EditText) viewframe4.findViewById(R.id.add_fare_edit_text);
+//        add_fare_edit_text = (EditText) viewframe4.findViewById(R.id.add_fare_edit_text);
+        add_fare_value_text = (FontFitTextView) viewframe4.findViewById(R.id.add_fare_value_text);
         add_fare_title = (FontFitTextView) viewframe4.findViewById(R.id.add_fare_title);
         btn_0 = (ButtonFitText) viewframe5.findViewById(R.id.btn_0);
         btn_1 = (ButtonFitText) viewframe5.findViewById(R.id.btn_1);
@@ -769,7 +811,7 @@ public class MainActivity extends AppCompatActivity {
         /*activity_main 에 있는
         메뉴 입력버튼 레이아웃*/
         menuNumberPadLayout = (LinearLayout) findViewById(R.id.menuNumberPadLayout);
-//        menu_input_text = (FontFitTextView) findViewById(R.id.menu_input_text);
+        menu_input_text = (FontFitTextView) findViewById(R.id.menu_input_text);
         menu_input_edit_text = (EditText) findViewById(R.id.menu_input_edit_text);
         m_btn_0 = (ButtonFitText) findViewById(R.id.m_btn_0);
         m_btn_1 = (ButtonFitText) findViewById(R.id.m_btn_1);
@@ -890,10 +932,12 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case R.id.btn_clear:  //정정
                         try {
+                            isCloseBtnCliked = false;
                             int lastIndex = addFareList.size() - 1;
                             if (lastIndex <= 0) {
                                 addFareList.removeAll(addFareList);
                                 add_fare_edit_text.setText("");
+                                add_fare_value_text.setText("");
                             }else {
                                 addFareList.remove(lastIndex);
                             }
@@ -902,22 +946,26 @@ public class MainActivity extends AppCompatActivity {
                         }
                         break;
                     case R.id.btn_close:
-                        addFareList = new ArrayList<>();
-                        addFareVal = "";
-                        if (addFareList.size() >= 0) {
-                            addFareList.clear();
-                        }
-                        tv_add_pay.setText(addFareVal);
+//                        addFareList = new ArrayList<>();
+//                        addFareVal = "";
+//                        if (addFareList.size() >= 0) {
+//                            addFareList.clear();
+//                        }
+//                        tv_add_pay.setText(addFareVal);
+                        isCloseBtnCliked = true;
+
+                        Toast.makeText(mContext, "close", Toast.LENGTH_SHORT).show();
 
                         number_pad_layout.setVisibility(View.VISIBLE);
                         main_layout.setVisibility(View.VISIBLE);
                         menu_layout.setVisibility(View.GONE);
                         number_pad_frame_layout.setVisibility(View.GONE);
                         add_fare_frame_layout.setVisibility(View.GONE);
-                        add_fare_edit_text.setVisibility(View.VISIBLE);
+                        add_fare_value_text.setVisibility(View.VISIBLE);
                         break;
 
                     case R.id.btn_ok: // 확인
+                        isCloseBtnCliked = false;
                         if (add_fare_title.getText().toString().equals("추가금액 입력")) {
                             if (addFareVal.length() < 6) {
                                 if (addFareVal.length() > 1) {
@@ -936,7 +984,7 @@ public class MainActivity extends AppCompatActivity {
                                     menu_layout.setVisibility(View.GONE);
                                     number_pad_frame_layout.setVisibility(View.GONE);
                                     add_fare_frame_layout.setVisibility(View.GONE);
-                                    add_fare_edit_text.setVisibility(View.VISIBLE);
+                                    add_fare_value_text.setVisibility(View.VISIBLE);
                                 }else {
                                     Toast.makeText(mContext, "1원단위는 입력하실 수 없습니다.", Toast.LENGTH_SHORT).show();
                                 }
@@ -948,7 +996,7 @@ public class MainActivity extends AppCompatActivity {
                                 menu_layout.setVisibility(View.GONE);
                                 number_pad_frame_layout.setVisibility(View.GONE);
                                 add_fare_frame_layout.setVisibility(View.GONE);
-                                add_fare_edit_text.setVisibility(View.VISIBLE);
+                                add_fare_value_text.setVisibility(View.VISIBLE);
                             }
 
                             addFareVal = "";
@@ -957,7 +1005,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                         }else if (add_fare_title.getText().toString().equals("운전자 아이디입력")) {
-                            if (add_fare_edit_text.getText().toString().length() < 4) {
+                            if (add_fare_value_text.getText().toString().length() < 4) {
                                 Toast.makeText(mContext, "4자리수를 입력하세요", Toast.LENGTH_SHORT).show();
                             }else {
                                 number_pad_layout.setVisibility(View.VISIBLE);
@@ -965,22 +1013,22 @@ public class MainActivity extends AppCompatActivity {
                                 menu_layout.setVisibility(View.GONE);
                                 number_pad_frame_layout.setVisibility(View.GONE);
                                 add_fare_frame_layout.setVisibility(View.GONE);
-                                add_fare_edit_text.setVisibility(View.VISIBLE);
+                                add_fare_value_text.setVisibility(View.VISIBLE);
                                 windowService.check_attendance("20", addFareVal);
                             }
-
                         }
                         break;
                 }//switch
 
             }//for
 
-//            Log.d("keypad_list_final", addFareList.toString()+",   사이즈: "+addFareList.size());
+            Log.d("keypad_list_final", addFareList.toString()+",   사이즈: "+addFareList.size());
+
 
             try {
                 if (addFareList.size() == 0){
                     addFareVal = "";
-                    add_fare_edit_text.setText("0");
+                    add_fare_value_text.setText("0");
                 }else {
 
 
@@ -992,16 +1040,22 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(mContext, "다시 입력해주세요.", Toast.LENGTH_SHORT).show();
                             addFareList.clear();
                         }else {
-                            add_fare_edit_text.setText(addFareVal);
+
+                            add_fare_value_text.setText(addFareVal);
+
+//                            tv_add_pay.setText(addFareVal);
 
                             if (addFareVal.length() >= 0){
-                                tv_add_pay.setText("");
+//                                tv_add_pay.setText("^_^");
                             }else {
+                                Log.d("여기_1", addFareVal);
                                 tv_add_pay.setText(addFareVal);
                             }
                         }
                     }else {
-                        add_fare_edit_text.setText(addFareVal);
+
+                        Log.d("여기_2", addFareVal);
+                        add_fare_value_text.setText(addFareVal);
 
                         if (addFareVal.length() >= 0){
                             tv_add_pay.setText("");
@@ -1013,6 +1067,7 @@ public class MainActivity extends AppCompatActivity {
 
                 }
 
+                AMBlestruct.AMReceiveFare.M_DRIVER_ID = addFareVal;
                 Log.d("수기요금_", addFareVal);
 
                 if (addFareVal.equals(null) || addFareVal.equals("") || Integer.parseInt(addFareVal) < 0) {
@@ -1021,8 +1076,10 @@ public class MainActivity extends AppCompatActivity {
             }catch (Exception e) {
                 e.printStackTrace();
             }
+
         }
     };
+
 
 
     //메뉴버튼 클릭리스너
@@ -1089,6 +1146,7 @@ public class MainActivity extends AppCompatActivity {
                             if (lastIndex <= 0) {
                                 menuInputList.removeAll(menuInputList);
                                 menu_input_edit_text.setText("");
+//                                menu_input_text.setText("");
                             }else {
                                 menuInputList.remove(lastIndex);
                             }
@@ -1125,21 +1183,22 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         menu_input_edit_text.setText(menuInputVal);
+//                        menu_input_text.setText(menuInputVal);
                         //me: 앱 -> 빈차등
-                        windowService.menu_input_meterState("47", "1", menuInputVal.length(), menu_input_edit_text.getText().toString()); //명령/ 입력완료여부(0-취소/1-완료)/ 입력데이터 길이/ 입력내용
+                        windowService.menu_input_meterState("47", "1", menuInputVal.length(), menu_input_text.getText().toString()); //명령/ 입력완료여부(0-취소/1-완료)/ 입력데이터 길이/ 입력내용
 //                        windowService.menu_input_responseState("92");
                         break;
                 }//switch
             }//for
 
-            Log.d("menuInputList", menuInputList.toString());
+//            Log.d("menuInputList", menuInputList.toString());
 
             try {
                 if (menuInputList.size() == 0) {
                     //0
                 }else {
                     menuInputVal = TextUtils.join("", menuInputList);
-                    Log.d("menuInputVal", menuInputVal);
+//                    Log.d("menuInputVal", menuInputVal);
 //                    menu_input_text.setText(menuInputVal);
                     menu_input_edit_text.setText(menuInputVal);
                     //값
@@ -1180,6 +1239,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.nbtn_drivestart:  //주행버튼
                     isDrivedClicked = true;
+                    btn_drive.setTextColor(getResources().getColor(R.color.black));
                     main_all_layout.setVisibility(View.VISIBLE);
                     main_layout.setVisibility(View.VISIBLE);
                     menu_main_layout.setVisibility(View.GONE);
@@ -1249,7 +1309,8 @@ public class MainActivity extends AppCompatActivity {
                     }else {
                         addFareList = new ArrayList<>();
                         add_fare_title.setText("운전자 아이디입력");
-                        add_fare_edit_text.setText("");
+//                        add_fare_edit_text.setText("");
+                        add_fare_value_text.setText("");
                         main_layout.setVisibility(View.GONE);
                         menu_layout.setVisibility(View.GONE);
                         number_pad_frame_layout.setVisibility(View.VISIBLE);
@@ -1286,7 +1347,8 @@ public class MainActivity extends AppCompatActivity {
                         btn_dayoff.setText("휴무");
                         addFareVal = "";
                         add_fare_title.setText("추가금액 입력");
-                        add_fare_edit_text.setText("");
+//                        add_fare_edit_text.setText("");
+                        add_fare_value_text.setText("");
                         addFareList = new ArrayList<>();
                         if (addFareList != null) {
                             if (addFareList.size() > 0) {
@@ -1302,7 +1364,8 @@ public class MainActivity extends AppCompatActivity {
                     }else if (isDrivedClicked == true && isPayClicked == true) {
                         btn_dayoff.setText("자동결제");
                         add_fare_title.setText("추가금액 입력");
-                        add_fare_edit_text.setText("");
+//                        add_fare_edit_text.setText("");
+                        add_fare_value_text.setText("");
                         if (addFareList != null) {
                             if (addFareList.size() > 0) {
                                 addFareList.clear();

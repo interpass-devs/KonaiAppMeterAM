@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/yellow_line_black_background">
+        android:background="@drawable/drive_bg">
 
         <LinearLayout
             android:visibility="gone"
@@ -450,7 +450,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/yellow_line_black_background"
+        android:background="@drawable/drive_bg"
         android:padding="15dp">
 
         <LinearLayout

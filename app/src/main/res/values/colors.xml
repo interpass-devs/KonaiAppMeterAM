@@ -11,6 +11,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="main_background">#242425</color>
+    <color name="main_background_trans">#99242425</color>
     <color name="yellow">#CAA831</color>
     <color name="pink">#E91E63</color>
     <color name="grey_light">#7F7C83</color>

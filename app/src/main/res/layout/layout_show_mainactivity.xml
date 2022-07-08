@@ -1,22 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="200dp"
+    android:layout_height="70dp"
+    android:orientation="horizontal"
     android:filterTouchesWhenObscured="true">
 
-<!--    <com.konai.appmeter.driver_am.util.FontFitTextView-->
-<!--        android:id="@+id/btn_img"-->
-<!--        android:layout_width="70dp"-->
-<!--        android:layout_height="70dp"-->
-<!--        android:layout_centerInParent="true"-->
-<!--        android:background="@drawable/yellow_transparent_round"-->
-<!--        android:gravity="center"-->
-<!--        android:text="호출"-->
-<!--        android:textColor="@color/white"/>-->
+
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/show_fare_layout"
+        android:layout_width="200dp"
+        android:layout_height="70dp"
+        android:orientation="horizontal"
+        android:background="@drawable/background_icon">
+        <TextView
+            android:id="@+id/btn_type_text"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/empty_bg"
+            android:gravity="center"
+            android:text="빈\n차"
+            android:textColor="@color/black"
+            android:textSize="22dp"
+            android:textStyle="bold" />
+
+        <com.konai.appmeter.driver_am.util.FontFitTextView
+            android:id="@+id/btn_img"
+            android:layout_width="160dp"
+            android:layout_height="70dp"
+            android:gravity="center_vertical|right"
+            android:text="0"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:paddingBottom="5dp"
+            android:paddingRight="8dp"/>
+    </LinearLayout>
+
+
+
+
+
+
+
     <ImageView
-        android:id="@+id/btn_img"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:src="@drawable/launcher_icon" />
+        android:id="@+id/launcher_icon"
+        android:visibility="visible"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@drawable/launcher_icon"/>
 
 </RelativeLayout>

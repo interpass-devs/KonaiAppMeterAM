@@ -45,7 +45,7 @@ public class MenuAdapter extends RecyclerView.Adapter {
 
     //커스텀 클릭리스너 interface
     public interface onItemClickListener{
-        void onItemClick(View v, int pos);
+        void onItemClick(View v, int pos, String numType);
     }
 
     private onItemClickListener mListener = null;
@@ -82,8 +82,7 @@ public class MenuAdapter extends RecyclerView.Adapter {
         if (position == 0) {
             vh.menu_text.setTextSize(4.0f * 8);
             vh.menu_text.setGravity(Gravity.CENTER);
-        }
-        else {
+        }else {
             try {
                 if (vh.menu_text.getText().toString().contains("기본인쇄")) {
 
@@ -158,17 +157,21 @@ public class MenuAdapter extends RecyclerView.Adapter {
 
                     int position = getLayoutPosition();
 
+                    Log.d("whichMenu_1", whichMenu+"");
+
                     //제품정보 클릭 못하게
                     if (whichMenu.contains("제품정보")) {
                         //do nothing
-                    }else if (whichMenu.contains("출근후집계") | whichMenu.contains("법인집계")){
+//                    }else  if ( whichMenu.contains("집계")) {
+                    }else  if ( whichMenu.contains("출근후집계") | whichMenu.contains("법인집계")) {
+                        Log.d("whichMenu", whichMenu+"");
 
                         if (print_btn_layout.getVisibility() == View.VISIBLE) {
                             print_btn_1.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     if (mListener != null) {
-                                        mListener.onItemClick(v, 1);
+                                        mListener.onItemClick(v, position, "1");
                                     }
                                 }
                             });
@@ -176,14 +179,13 @@ public class MenuAdapter extends RecyclerView.Adapter {
                                 @Override
                                 public void onClick(View v) {
                                     if (mListener != null) {
-                                        mListener.onItemClick(v, 2);
+                                        mListener.onItemClick(v, position, "2");
                                     }
                                 }
                             });
                         }else {
                             //do nothing
                         }
-
                     }else {
                         if (position != RecyclerView.NO_POSITION) {
                             if (position == 0) {
@@ -192,7 +194,7 @@ public class MenuAdapter extends RecyclerView.Adapter {
                             }else {
                                 Log.d("position>", position+"");
                                 if (mListener != null) {
-                                    mListener.onItemClick(v, position);
+                                    mListener.onItemClick(v, position, "0");
                                 }
                             }
                         }

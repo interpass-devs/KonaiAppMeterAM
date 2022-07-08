@@ -126,7 +126,7 @@ public class AMBluetoothManager {
         }
 
         if (mBluetoothManager == null) {
-            Log.e(ble, "unable to initialize bluetooth manager"); //y
+//            Log.e(ble, "unable to initialize bluetooth manager"); //y
             return false;
         }
 
@@ -136,14 +136,14 @@ public class AMBluetoothManager {
         }
 
         if (mBluetoothAdapter == null) {
-            Log.e(ble,"unable to initialize bluetooth adapter");
+//            Log.e(ble,"unable to initialize bluetooth adapter");
             return false;
         } else {
-            Log.d(ble,"Able to initialize bluetooth adapter!"); //y
+//            Log.d(ble,"Able to initialize bluetooth adapter!"); //y
         }
 
         if (mBluetoothAdapter == null || setting.BLUETOOTH_DEVICE_ADDRESS.equals("")) {
-            Log.e(ble, "unable to initialize bluetoothAdapter & address");
+//            Log.e(ble, "unable to initialize bluetoothAdapter & address");
             return false;
         }
 
@@ -151,13 +151,13 @@ public class AMBluetoothManager {
         //bluetooth device
         if (mBluetoothDevice == null) {
             mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(deviceAddress);
-            Log.e(ble, "bluetooth device null");
+//            Log.e(ble, "bluetooth device null");
         } else {
-            Log.d(ble, "bluetooth device not null! "+deviceAddress);
+//            Log.d(ble, "bluetooth device not null! "+deviceAddress);
         }
 
         if (mBluetoothDevice == null) {
-            Log.e(ble, "device not found. unable to connect." );
+//            Log.e(ble, "device not found. unable to connect." );
 //            return false;
         } else {
             Log.d(ble, deviceAddress+""); //3C:A5:51:85:1A:36
@@ -174,7 +174,7 @@ public class AMBluetoothManager {
         mBluetoothAddress = deviceAddress;
         mConnectionState = STATE_CONNECTING;
 
-        Log.d(log+"blePairing", mBluetoothAddress+"!!");
+//        Log.d(log+"blePairing", mBluetoothAddress+"!!");
 
 //        makepacketsend("15");
 
@@ -198,14 +198,6 @@ public class AMBluetoothManager {
                         windowService.set_meterhandler.sendEmptyMessage(100);
                         windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_BLE_STATE);
                         setting.BLE_STATE = true;
-
-//                        try {
-//                            wait(1000);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                        AMBlestruct.mSState = "00";
-//                        makepacketsend(AMBlestruct.APP_REQUEST_CODE);  //"15"   //현재상태 전송
 
                         Log.i(log+"ble", "Server discovery-> " + mBluetoothGatt.discoverServices());  //true
                         broadcastUpdate(intentAction);
@@ -413,7 +405,7 @@ public class AMBluetoothManager {
                 topkt.SetString(packetdata, AMBlestruct.APP_REQUEST_CODE);  //요청코드
                 topkt.SetString(packetdata, getCurDateString()); //날짜시간
                 topkt.SetString(packetdata, AMBlestruct.mSState);  //상태요청
-                Log.d("15=>  ", AMBlestruct.APP_REQUEST_CODE+",  "+getCurDateString()+",  "+AMBlestruct.mSState);
+//                Log.d("15=>  ", AMBlestruct.APP_REQUEST_CODE+",  "+getCurDateString()+",  "+AMBlestruct.mSState);
                 break;
 
             case "69":
@@ -447,10 +439,10 @@ public class AMBluetoothManager {
                 topkt.SetString(packetdata,"20");
                 topkt.SetString(packetdata,getCurDateString());
                 topkt.SetString(packetdata,AMBlestruct.B_ADDFARE);
-                Log.d("현재_추가요금", requestCode+",  "+AMBlestruct.B_ADDFARE);
+//                Log.d("현재_추가요금", requestCode+",  "+AMBlestruct.B_ADDFARE);
                 break;
 
-            case "48":
+            case "48":  //출근- 운전자 아이디
                 topkt.SetString(packetdata,"48");
                 topkt.SetString(packetdata,getCurDateString());
                 topkt.SetString(packetdata, AMBlestruct.mSState);
@@ -671,7 +663,7 @@ public class AMBluetoothManager {
 
         switch (rcvCode) {
             case "98":
-//                Log.d("98_requestcode", getString(bytePacket, 14))
+                windowService.set_meterhandler.sendEmptyMessage(101);
                 break;
 
             case AMBlestruct.METER_REQUEST_CODE: // "19" 택시요금수신, 미터기모드 응답
@@ -685,10 +677,16 @@ public class AMBluetoothManager {
             AMBlestruct.AMReceiveFare.M_COMPLEX_FARE = getString(bytePacket, 48, 1);    // 복합할증여부
             AMBlestruct.AMReceiveFare.M_SUBURB_FARE = getString(bytePacket, 49, 1);     // 시계할증여부
             AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE = getString(bytePacket, 50, 3); // 할증율
+                AMBlestruct.AMReceiveFare.M_DRIVER_ID = getString(bytePacket, 129, 4);   //운전자아이디
 
             Log.d("19=>받은버튼값",AMBlestruct.AMReceiveFare.M_STATE);
             Log.d("19=>현재받은요금",AMBlestruct.AMReceiveFare.M_START_FARE );
-            Log.d("19=>기타/추가", AMBlestruct.AMReceiveFare.M_ETC_FARE);
+//            Log.d("19=>기타/추가", AMBlestruct.AMReceiveFare.M_ETC_FARE);
+//            Log.d("19=>운전자아이디", AMBlestruct.AMReceiveFare.M_DRIVER_ID);
+//            Log.d("19=>심야", AMBlestruct.AMReceiveFare.M_NIGHT_FARE);
+//            Log.d("19=>시외", AMBlestruct.AMReceiveFare.M_SUBURB_FARE);
+//            Log.d("19=>복합", AMBlestruct.AMReceiveFare.M_COMPLEX_FARE);
+//            Log.d("19=>할증율", AMBlestruct.AMReceiveFare.M_EXTRA_FARE_RATE);
 
             //버튼값 절달 --> windowService --> mainActivity(mCallback)
             windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_AM_STATE);
@@ -696,13 +694,11 @@ public class AMBluetoothManager {
 
         case AMBlestruct.METER_MENU_REQUEST_CODE:  // "42" - 미터기 메뉴 응답
             AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME = rcvDate;                                      // 날짜시간
-            AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE = getInt(bytePacket, 17, 1);            // 메세지 종류
+            AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE = getInt(bytePacket, 17, 1);            // 메세지 종류: 0-닫기/1-메뉴/2-정보출력/3-정보출력+숫자
             AMBlestruct.AMReceiveMenu.MENU_MSG = getString(bytePacket, 18, packetlen-21);   // 메시지 ** 전문 수정 필요.
 
-//            Log.d("menu_getCode_","---------------------------------------");
-//            Log.d("menu_getCode_요청코드" , AMBlestruct.METER_MENU_REQUEST_CODE+"");
-            Log.d("menu_getCode_메뉴종류" , AMBlestruct.AMReceiveMenu.MENU_MSG_TYPE+"");  //49-> 0
-//            Log.d("menu_getCode_메뉴메세지" , AMBlestruct.AMReceiveMenu.MENU_MSG+"");
+            Log.d("42=>메뉴종류",AMBlestruct.AMReceiveFare.M_STATE);
+            Log.d("42=>메뉴메세지", AMBlestruct.AMReceiveMenu.MENU_MSG);
 
             windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_MENU_STATE);
             break;
@@ -711,12 +707,6 @@ public class AMBluetoothManager {
             AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME =  rcvDate;                                      // 날짜시간
             AMBlestruct.AMReceiveMenu.MENU_INPUT_TYPE = getString(bytePacket, 17, 1);        // 메세지 종류
             AMBlestruct.AMReceiveMenu.MENU_MSG = getString(bytePacket, 18, packetlen-21);    // 메시지 ** 전문 수정 필요.
-
-//            Log.d("menu_getCode_","---------------------------------------");
-//            Log.d("menu_getCode_요청코드", AMBlestruct.METER_MENU_INPUT_REQUEST_CODE);
-//            Log.d("menu_getCode_날짜시간", AMBlestruct.AMReceiveMenu.MENU_RECEIVE_TIME);
-//            Log.d("menu_getCode_입력타입", AMBlestruct.AMReceiveMenu.MENU_INPUT_TYPE);  //0-일반숫자/ 1-비밀번호입력(숫자를 *로 표시)
-//            Log.d("menu_getCode_입력메세지", AMBlestruct.AMReceiveMenu.MENU_MSG);
 
             windowService.set_meterhandler.sendEmptyMessage(AMBlestruct.AMReceiveMsg.MSG_CUR_INPUT_MENU_STATE);
             break;

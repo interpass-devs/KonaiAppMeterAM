@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:layout_marginRight="10dp"
         android:layout_weight="1"
-        android:background="@drawable/yellow_line_black_background"
+        android:background="@drawable/drive_bg"
         android:gravity="center"
         android:orientation="vertical"
         android:paddingBottom="20dp">
