@@ -367,11 +367,14 @@ public class AMBluetoothManager {
         makepacketsend(responseCode);
     }
 
-    public void menu_AMmeterState(String sstate, String menutype, String pos) {
+    public void menu_AMmeterState(String sstate, String menutype, String pos, String numType) {
 
         AMBlestruct.mSState = sstate;
         AMBlestruct.MenuType.TYPE = menutype;
         AMBlestruct.MenuType.MENU_CONTENT = pos;
+        AMBlestruct.MenuType.MENU_NUMTYPE = numType;
+
+        Log.d("메뉴-3", sstate+", "+menutype+", "+pos+", "+numType);
 
         makepacketsend(AMBlestruct.mSState);
     }
@@ -415,16 +418,27 @@ public class AMBluetoothManager {
                 break;
 
             case AMBlestruct.APP_MENU_REQUEST_CODE:  //"41"
-                topkt.SetString(packetdata, AMBlestruct.APP_MENU_REQUEST_CODE);  //"41"
+                topkt.SetString(packetdata, AMBlestruct.APP_MENU_REQUEST_CODE);
                 topkt.SetString(packetdata, getCurDateString());
                 topkt.SetString(packetdata, AMBlestruct.MenuType.TYPE); //0-닫기/1-메뉴/2-정보출력/3-정보출력+숫자키버튼
                 break;
 
             case AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE:  //"43"
-                topkt.SetString(packetdata, AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE);
-                topkt.SetString(packetdata, getCurDateString());
-                topkt.SetString(packetdata, AMBlestruct.MenuType.TYPE);
-                topkt.SetString(packetdata, AMBlestruct.MenuType.MENU_CONTENT);  //선택번호
+
+                if (AMBlestruct.MenuType.MENU_NUMTYPE.equals("1") || AMBlestruct.MenuType.MENU_NUMTYPE.equals("2")) {
+//                    Log.d("check_menu_numtype: "+AMBlestruct.MenuType.MENU_NUMTYPE, "---------------");
+                    topkt.SetString(packetdata, AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE);
+                    topkt.SetString(packetdata, getCurDateString());
+                    topkt.SetString(packetdata, AMBlestruct.MenuType.TYPE);
+                    topkt.SetString(packetdata, AMBlestruct.MenuType.MENU_NUMTYPE);  //선택번호
+                }else {
+//                    Log.d("check_menu_numtype", "@@@@@@@@@@@@@");
+                    topkt.SetString(packetdata, AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE);
+                    topkt.SetString(packetdata, getCurDateString());
+                    topkt.SetString(packetdata, AMBlestruct.MenuType.TYPE);
+                    topkt.SetString(packetdata, AMBlestruct.MenuType.MENU_CONTENT);  //선택번호
+                }
+
                 break;
 
             case "47":

@@ -84,7 +84,7 @@ public class MenuAdapter extends RecyclerView.Adapter {
             vh.menu_text.setGravity(Gravity.CENTER);
         }else {
             try {
-                if (vh.menu_text.getText().toString().contains("기본인쇄")) {
+                if (vh.menu_text.getText().toString().contains("기본인쇄") && vh.menu_text.getText().toString().contains("상세인쇄")) {
 
                     vh.menu_text.setVisibility(View.GONE);
 
@@ -119,9 +119,6 @@ public class MenuAdapter extends RecyclerView.Adapter {
             print_btn_layout = itemView.findViewById(R.id.print_btn_layout);
             print_btn_1 = itemView.findViewById(R.id.print_btn_1);
             print_btn_2 = itemView.findViewById(R.id.print_btn_2);
-
-
-
 
 
             itemView.setOnTouchListener(new View.OnTouchListener() {
@@ -162,9 +159,13 @@ public class MenuAdapter extends RecyclerView.Adapter {
                     //제품정보 클릭 못하게
                     if (whichMenu.contains("제품정보")) {
                         //do nothing
-//                    }else  if ( whichMenu.contains("집계")) {
-                    }else  if ( whichMenu.contains("출근후집계") | whichMenu.contains("법인집계")) {
-                        Log.d("whichMenu", whichMenu+"");
+                    }
+                    else  if ( whichMenu.contains("오늘집계")
+                            || whichMenu.contains("전일집계")
+                            || whichMenu.contains("기간집계")
+                            || whichMenu.contains("출근후집계")
+                            || whichMenu.contains("법인집계")
+                            || whichMenu.contains("제목없음")) {
 
                         if (print_btn_layout.getVisibility() == View.VISIBLE) {
                             print_btn_1.setOnClickListener(new View.OnClickListener() {
@@ -186,7 +187,8 @@ public class MenuAdapter extends RecyclerView.Adapter {
                         }else {
                             //do nothing
                         }
-                    }else {
+                    }
+                    else {
                         if (position != RecyclerView.NO_POSITION) {
                             if (position == 0) {
                                 //do nothing

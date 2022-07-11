@@ -63,6 +63,7 @@ public class AMBlestruct {
         public static String PRINT_INFO = "2";  //정보출력
         public static String PRINT_BY_NUMBER = "3"; //정보출력 + 숫자키버튼 0-9
         public static String MENU_CONTENT = "0";  //기능선택 (0-번호선택/ 1-이전(정정) /2-닫기)
+        public static String MENU_NUMTYPE = "0";
     }
 
     //me: 빈차등 -> 앱

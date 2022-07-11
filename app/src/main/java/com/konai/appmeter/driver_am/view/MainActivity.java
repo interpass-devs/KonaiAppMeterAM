@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
@@ -19,6 +20,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -87,12 +89,12 @@ public class MainActivity extends AppCompatActivity {
     public static AwindowService windowService = null;
     private String log_ = "log_mainActivity";
     private Context mContext;
+    int icon_x = -1, icon_y = -1, icon_w = 300, icon_h = 138;
     private MyTouchListener mTouchListener;
     private View viewframe1, viewframe2, viewframe3, viewframe4, viewframe5;
     private FrameLayout frame1, frame2, frame3, frame4, frame5;
-    private LinearLayout main_layout, menu_layout, menuNumberPadLayout, menu_main_layout, main_all_layout, menu_info_layout, radio_button_layout, main_btn_layout, number_pad_layout, add_fare_frame_layout, number_pad_frame_layout, menu_list_layout;
+    private LinearLayout main_layout, menu_layout, menuNumberPadLayout, menu_main_layout, main_all_layout, menu_info_layout, main_btn_layout, number_pad_layout, add_fare_frame_layout, number_pad_frame_layout, menu_list_layout;
     /* 추가금액 입력버튼 */
-    int index = 0;
     private int mlength = 0;
     ArrayList<String> addFareList; //추가금액 리스트
     private String addFareVal = ""; //추가금액 val
@@ -108,15 +110,12 @@ public class MainActivity extends AppCompatActivity {
     private MenuAdapter menuAdapter;
     private RecyclerView menuRecyclerView;
     private TextView menu_text;
-    private ArrayList<String> itemList = new ArrayList<>();
     ArrayList<String> menuList;
-    private ButtonFitText btn_menu, btn_receipt, btn_reserve, btn_attendance, btn_arrive, btn_dayoff, btn_add_pay, close_menu_btn, back_menu_btn;
+    private ButtonFitText btn_menu, btn_receipt, btn_reserve, btn_attendance, btn_dayoff, btn_add_pay, close_menu_btn, back_menu_btn;
     private ButtonFitText btn_empty, btn_drive, btn_call, btn_pay;
     private ImageView iv_ble;
-    private int totalFareValue;
     private FontFitTextView fareRate, tv_night_status, tv_complex, tv_suburb_rate, emptybox, tv_add_pay, tv_rescall_pay, tv_total_pay, driver_id_text, btn_main_status, btn_sub_status, menu_title;
-    private Boolean menuClicked, isDrivedClicked = false, isPayClicked = false, isCloseBtnCliked = false;
-    private Intent enableIntent;
+    private Boolean isDrivedClicked = false, isPayClicked = false, isCloseBtnCliked = false;
 
 
     private AwindowService.mainCallBack mCallback = new AwindowService.mainCallBack() {
@@ -133,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
         public void serviceBleStatus(boolean bleStatus) {
             //블루투스 상태값 변경
             setBluetoothIconChanged(bleStatus);
-//            windowService.update_BtnMeterstate("00");
         }
 
 
@@ -152,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
             AMBlestruct.AMReceiveFare.M_CALL_FARE = callFare + "";
 
             if (!driverId.equals("")) {
-                Log.d("운전자아이디_main", driverId);
                 driver_id_text.setText(driverId);
             }
 
@@ -233,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (btnType == 05) {
                 isDrivedClicked = false;
                 isPayClicked = false;
-                Log.d("buttonType!!",btnType+"");
+//                Log.d("buttonType!!",btnType+"");
                 main_all_layout.setVisibility(View.VISIBLE);
                 main_layout.setVisibility(View.VISIBLE);
                 btn_main_status.setText("빈차");
@@ -294,7 +291,6 @@ public class MainActivity extends AppCompatActivity {
                 //클릭 안되게 설정
                 //숫자입력패드 보이기
                 menuInputList.removeAll(menuInputList);  //초기화
-//                menu_input_text.setText("");
                 menu_input_edit_text.setText("");
                 menuNumberPadLayout.setVisibility(View.VISIBLE);
 
@@ -311,26 +307,25 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemClick(View v, int pos, String numType) {
                         //me: 앱 -> 빈차등
                         // 메뉴목록 선택시 빈차등수신요청..
-                        Log.d("pos>>>",pos+":  인쇄: "+numType);
 
                         AMBlestruct.MenuType.MENU_CONTENT = pos + "";
-                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
+                        AMBlestruct.MenuType.MENU_NUMTYPE = numType + "";
 
 
-//                        switch (numType) {
-//                            case "0":  //기본값 보내기
-//                                AMBlestruct.MenuType.MENU_CONTENT = pos + "";
-//                                windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
-//                                break;
-//                            case "1":  //기본인쇄
-//                                AMBlestruct.MenuType.MENU_CONTENT = numType + "";
-//                                windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
-//                                break;
-//                            case "2":  //상세인쇄
-//                                AMBlestruct.MenuType.MENU_CONTENT = numType + "";
-//                                windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT);  //"43", 선택목록번호
-//                                break;
-//                        }
+                        switch (numType) {
+                            case "0":  //기본값 보내기
+                                AMBlestruct.MenuType.MENU_CONTENT = pos + "";
+                                windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT, AMBlestruct.MenuType.MENU_NUMTYPE);  //"43", 선택목록번호
+                                break;
+                            case "1":  //기본인쇄
+                                AMBlestruct.MenuType.MENU_CONTENT = numType + "";
+                                windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT, AMBlestruct.MenuType.MENU_NUMTYPE);  //"43", 선택목록번호
+                                break;
+                            case "2":  //상세인쇄
+                                AMBlestruct.MenuType.MENU_CONTENT = numType + "";
+                                windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE, "0", AMBlestruct.MenuType.MENU_CONTENT, AMBlestruct.MenuType.MENU_NUMTYPE);  //"43", 선택목록번호
+                                break;
+                        }
 
 
                     }
@@ -371,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
 
     //총 요금
     public void display_Runstate(String mFare) {
-        Log.d("tv_total_pay:수기", mFare);
+//        Log.d("tv_total_pay:수기", mFare);
         tv_total_pay.setText(mFare);
     }
 
@@ -410,6 +405,8 @@ public class MainActivity extends AppCompatActivity {
 
         goMain();
 
+//        loadOverlayIconInfo();
+
     }//onCreate
 
 
@@ -423,6 +420,16 @@ public class MainActivity extends AppCompatActivity {
 
         //뷰 아이디 찾기
         viewFrameVariablesConfiguration();
+    }
+
+
+    private void loadOverlayIconInfo() {
+        SharedPreferences pref = getSharedPreferences("pref", Activity.MODE_PRIVATE);
+        icon_x = pref.getInt("icon_x", -1);
+        icon_y = pref.getInt("icon_y", -1);
+        icon_w = pref.getInt("icon_w", 300);
+        icon_h = pref.getInt("icon_h", 138);
+
     }
 
 
@@ -897,7 +904,7 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View v) {
 
             for (int i=0; i<1; i++) {
-                index = i;
+
                 switch (v.getId()) {
 
                     case R.id.btn_0:
@@ -1096,7 +1103,7 @@ public class MainActivity extends AppCompatActivity {
                         AMBlestruct.MenuType.MENU_CONTENT = "2";
                         menuNumberPadLayout.setVisibility(View.GONE);
                         menuInputList.removeAll(menuInputList);
-                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,""); //닫기
+                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,"",""); //닫기
                         main_all_layout.setVisibility(View.VISIBLE);
                         menu_main_layout.setVisibility(View.GONE);  //status:  닫기 수신번호가 잘 왔을 때 설정..  !!!!!!!!!!!!
                         main_layout.setVisibility(View.VISIBLE);  //빈차화면
@@ -1106,7 +1113,7 @@ public class MainActivity extends AppCompatActivity {
                         AMBlestruct.MenuType.MENU_CONTENT = "1";
                         menuNumberPadLayout.setVisibility(View.GONE);
                         menuInputList.removeAll(menuInputList);
-                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,""); //이전(정정)
+                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  AMBlestruct.MenuType.MENU_CONTENT,"", ""); //이전(정정)
                         break;
                     /*메뉴- 숫자패드 버튼*/
                     case R.id.m_btn_0:
@@ -1165,7 +1172,7 @@ public class MainActivity extends AppCompatActivity {
                         windowService.menu_input_meterState("47", "0", menuInputVal.length(), menuInputVal); //명령/ 입력완료여부(0-취소/1-완료)/ 입력데이터 길이/ 입력내용
 
                         //닫기 전송
-                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  "2", ""); //2-닫기
+                        windowService.menu_meterState(AMBlestruct.APP_MENU_CONTENTS_REQUEST_CODE,  "2", "",""); //2-닫기
 
                         menuNumberPadLayout.setVisibility(View.GONE);
                         menuInputList.removeAll(menuInputList);
@@ -1283,7 +1290,7 @@ public class MainActivity extends AppCompatActivity {
                         add_fare_frame_layout.setVisibility(View.GONE);
                         setEmptyStatus(btn_empty, btn_drive, btn_call, btn_pay);
                         //me: 버튼 -> 빈차등
-                        windowService.menu_meterState(AMBlestruct.APP_MENU_REQUEST_CODE, AMBlestruct.MenuType.OPEN,"");
+                        windowService.menu_meterState(AMBlestruct.APP_MENU_REQUEST_CODE, AMBlestruct.MenuType.OPEN,"","");
                     }
                     break;
 
@@ -1302,6 +1309,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     break;
                 case R.id.nbtn_attendance:  //출근 btn
+
                     if (isDrivedClicked == true) {
                         Toast.makeText(mContext, R.string.drive_toast, Toast.LENGTH_SHORT).show();
                     }else if (isPayClicked == true) {
@@ -1309,7 +1317,6 @@ public class MainActivity extends AppCompatActivity {
                     }else {
                         addFareList = new ArrayList<>();
                         add_fare_title.setText("운전자 아이디입력");
-//                        add_fare_edit_text.setText("");
                         add_fare_value_text.setText("");
                         main_layout.setVisibility(View.GONE);
                         menu_layout.setVisibility(View.GONE);
@@ -1318,6 +1325,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     break;
                 case R.id.nbtn_reserve:  //예약 btn
+
                     if (isDrivedClicked == true) {
                         Toast.makeText(mContext, R.string.drive_toast, Toast.LENGTH_SHORT).show();
                     }else if (isPayClicked == true) {
